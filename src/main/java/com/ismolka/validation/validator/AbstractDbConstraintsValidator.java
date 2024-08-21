@@ -2,41 +2,19 @@ package com.ismolka.validation.validator;
 
 import com.ismolka.validation.constraints.inner.ConstraintKey;
 import com.ismolka.validation.validator.metainfo.FieldPath;
-import com.ismolka.validation.validator.utils.HibernateConstraintValidationUtils;
 import com.ismolka.validation.validator.utils.MetaInfoExtractorUtil;
 import jakarta.persistence.criteria.*;
 import jakarta.validation.ConstraintValidator;
-import jakarta.validation.ConstraintValidatorContext;
 import org.antlr.v4.runtime.misc.OrderedHashSet;
-import org.hibernate.validator.constraintvalidation.HibernateConstraintValidatorContext;
 
 import java.lang.annotation.Annotation;
 import java.util.*;
 
 public abstract class AbstractDbConstraintsValidator<T extends Annotation, A> extends AbstractEntityManagerConstraintValidator<T, A> implements ConstraintValidator<T, A> {
 
-    private static final String CONSTRAINT_ERROR_FIELDS_PARAM_NAME = "constraintErrorFields";
+    protected static final String CONSTRAINT_ERROR_FIELDS_PARAM_NAME = "constraintErrorFields";
 
-    private static final String CONSTRAINT_ERROR_FIELDS_VALUES_PARAM_NAME = "constraintErrorFieldsValues";
-
-    protected void fillContextValidator(ConstraintValidatorContext context, Set<Set<FieldPath>> metaInfoConstraintKeys, Object object, List<Object[]> equalityMatrix) {
-        HibernateConstraintValidatorContext constraintValidatorContext = context.unwrap(HibernateConstraintValidatorContext.class);
-
-        int columnIndex = 0;
-
-        for (Set<FieldPath> constraintKey : metaInfoConstraintKeys) {
-            for (Object[] row : equalityMatrix) {
-                Boolean isNotUnique = (Boolean) row[columnIndex];
-
-                if (isNotUnique) {
-                    HibernateConstraintValidationUtils.fieldNameBatchesConstraintViolationBuild(constraintValidatorContext, constraintKey, object, CONSTRAINT_ERROR_FIELDS_PARAM_NAME, CONSTRAINT_ERROR_FIELDS_VALUES_PARAM_NAME, message);
-                    break;
-                }
-            }
-
-            columnIndex++;
-        }
-    }
+    protected static final String CONSTRAINT_ERROR_FIELDS_VALUES_PARAM_NAME = "constraintErrorFieldsValues";
 
     protected CriteriaQuery<Object[]> createCriteriaQuery(Class<?> clazz, Set<Set<FieldPath>> metaInfoConstraintKeys, Object object) {
         CriteriaBuilder cb = em.getCriteriaBuilder();
