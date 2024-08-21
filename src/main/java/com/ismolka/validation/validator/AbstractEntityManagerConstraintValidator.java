@@ -68,4 +68,6 @@ public abstract class AbstractEntityManagerConstraintValidator<T extends Annotat
 
         return path;
     }
+
+    protected abstract void extractAndCashMetaDataForClass(Class<?> clazz);
 }

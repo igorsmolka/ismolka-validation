@@ -354,7 +354,8 @@ public class CheckExistingByConstraintAndUnmodifiableAttributesValidator extends
         return criteriaQuery;
     }
 
-    private void extractAndCashMetaDataForClass(Class<?> clazz) {
+    @Override
+    protected void extractAndCashMetaDataForClass(Class<?> clazz) {
         Set<FieldPath> fieldsMetaInfoResult = extractExistingConstraintInfo(clazz);
         Set<UnmodifiedAttributeMetaInfo> unmodifiedAttributeMetaInfos = extractUnmodifiedAttributeMetaInfo(clazz);
         Set<UnmodifiedCollectionMetaInfo> unmodifiedCollectionMetaInfos = extractUnmodifiedCollectionMetaInfo(clazz);

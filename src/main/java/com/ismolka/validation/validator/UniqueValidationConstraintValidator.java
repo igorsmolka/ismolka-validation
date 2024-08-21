@@ -80,7 +80,8 @@ public class UniqueValidationConstraintValidator extends AbstractDbConstraintsVa
     }
 
 
-    private void extractAndCashMetaDataForClass(Class<?> clazz) {
+    @Override
+    protected void extractAndCashMetaDataForClass(Class<?> clazz) {
         try {
             META_INFO.put(clazz, extractConstraintFieldsInfoByAnnotations(clazz, constraintKeys));
         } catch (Exception exc) {

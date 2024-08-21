@@ -109,7 +109,8 @@ public class CheckRelationsExistsConstraintsValidator extends AbstractEntityMana
         }
     }
 
-    private void extractAndCashMetaDataForClass(Class<?> clazz) {
+    @Override
+    protected void extractAndCashMetaDataForClass(Class<?> clazz) {
         Set<CheckRelationMetaInfo> checkRelationMetaInfo = new OrderedHashSet<>();
 
         for (RelationCheckConstraint relationCheckConstraint : relationCheckConstraints) {

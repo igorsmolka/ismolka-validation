@@ -137,7 +137,8 @@ public class LimitValidationConstraintValidator extends AbstractDbConstraintsVal
     }
 
 
-    private void extractAndCashMetaDataForClass(Class<?> clazz) {
+    @Override
+    protected void extractAndCashMetaDataForClass(Class<?> clazz) {
         try {
             Set<LimitValueMetaInfo> limitValueMetaInfo = extractMetaInfoForLimitValidationFields(clazz);
             Set<Set<FieldPath>> extractedFromUniqueAnnotationMetaInfo = new OrderedHashSet<>();
