@@ -14,7 +14,7 @@ import java.util.function.BiPredicate;
 
 public class DefaultAttributeChangesChecker<T> implements AttributeChangesChecker<T> {
 
-    protected Set<AttributeMetaInfo> attributesToCheck;
+    protected Set<AttributeCheckDescriptor> attributesToCheck;
 
     protected boolean stopOnFirstDiff;
 
@@ -23,7 +23,7 @@ public class DefaultAttributeChangesChecker<T> implements AttributeChangesChecke
         this.stopOnFirstDiff = false;
     }
 
-    public DefaultAttributeChangesChecker(Set<AttributeMetaInfo> attributesToCheck, boolean stopOnFirstDiff) {
+    public DefaultAttributeChangesChecker(Set<AttributeCheckDescriptor> attributesToCheck, boolean stopOnFirstDiff) {
         this.attributesToCheck = attributesToCheck;
         this.stopOnFirstDiff = stopOnFirstDiff;
     }
@@ -36,7 +36,7 @@ public class DefaultAttributeChangesChecker<T> implements AttributeChangesChecke
 
         Map<String, Difference> diffMap = new HashMap<>();
 
-        for (AttributeMetaInfo attributeToCheck : attributesToCheck) {
+        for (AttributeCheckDescriptor attributeToCheck : attributesToCheck) {
             Object newAttrVal = attributeToCheck.fieldPath().getValueFromObject(newObj);
             Object oldAttrVal = attributeToCheck.fieldPath().getValueFromObject(oldObj);
 
@@ -50,7 +50,7 @@ public class DefaultAttributeChangesChecker<T> implements AttributeChangesChecke
         return new AttributeChangesCheckerResult(diffMap, diffMap.isEmpty());
     }
 
-    private void checkWithInnerCheckerAndPutInMapIfHasDiff(AttributeMetaInfo attributeToCheck, Object newAttrVal, Object oldAttrVal, ChangesChecker<?> changesChecker, Map<String, Difference> diffMap) {
+    private void checkWithInnerCheckerAndPutInMapIfHasDiff(AttributeCheckDescriptor attributeToCheck, Object newAttrVal, Object oldAttrVal, ChangesChecker<?> changesChecker, Map<String, Difference> diffMap) {
         if (newAttrVal == oldAttrVal) {
             return;
         }

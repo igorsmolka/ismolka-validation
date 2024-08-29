@@ -8,7 +8,7 @@ public class DefaultAttributeChangesCheckerBuilder<T> {
 
     Class<T> clazz;
 
-    Set<AttributeMetaInfo> attributesToCheck;
+    Set<AttributeCheckDescriptor> attributesToCheck;
 
     boolean stopOnFirstDiff;
 
@@ -20,7 +20,7 @@ public class DefaultAttributeChangesCheckerBuilder<T> {
         this.clazz = clazz;
     }
 
-    public DefaultAttributeChangesCheckerBuilder<T> addAttributeToCheck(AttributeMetaInfo attribute) {
+    public DefaultAttributeChangesCheckerBuilder<T> addAttributeToCheck(AttributeCheckDescriptor attribute) {
         if (attributesToCheck == null) {
             attributesToCheck = new OrderedHashSet<>();
         }

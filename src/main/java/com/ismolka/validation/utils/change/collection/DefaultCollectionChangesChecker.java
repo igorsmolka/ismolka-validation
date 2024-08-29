@@ -4,7 +4,7 @@ import com.ismolka.validation.constraints.constant.CollectionOperation;
 import com.ismolka.validation.utils.change.Difference;
 import com.ismolka.validation.utils.change.attribute.AttributeChangesCheckerResult;
 import com.ismolka.validation.utils.change.attribute.AttributeDifference;
-import com.ismolka.validation.utils.change.attribute.AttributeMetaInfo;
+import com.ismolka.validation.utils.change.attribute.AttributeCheckDescriptor;
 import com.ismolka.validation.utils.change.attribute.DefaultAttributeChangesChecker;
 import com.ismolka.validation.validator.metainfo.FieldPath;
 import org.antlr.v4.runtime.misc.OrderedHashSet;
@@ -39,7 +39,7 @@ public class DefaultCollectionChangesChecker<T> extends DefaultAttributeChangesC
         this.mainEqualsFields = new OrderedHashSet<>();
     }
 
-    public DefaultCollectionChangesChecker(Class<T> collectionGenericClass, Set<AttributeMetaInfo> attributesToCheck, boolean stopOnFirstDiff, Set<CollectionOperation> forOperations, Method mainEqualsMethodReflectionRef, BiPredicate<T, T> mainBiEqualsMethodCodeRef, Set<FieldPath> fieldsForMatching, Set<FieldPath> mainEqualsFields) {
+    public DefaultCollectionChangesChecker(Class<T> collectionGenericClass, Set<AttributeCheckDescriptor> attributesToCheck, boolean stopOnFirstDiff, Set<CollectionOperation> forOperations, Method mainEqualsMethodReflectionRef, BiPredicate<T, T> mainBiEqualsMethodCodeRef, Set<FieldPath> fieldsForMatching, Set<FieldPath> mainEqualsFields) {
         super(attributesToCheck, stopOnFirstDiff);
         this.collectionGenericClass = collectionGenericClass;
         this.forOperations = forOperations;
