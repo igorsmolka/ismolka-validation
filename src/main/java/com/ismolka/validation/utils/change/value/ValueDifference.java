@@ -1,4 +1,4 @@
-package com.ismolka.validation.utils.change.attribute;
+package com.ismolka.validation.utils.change.value;
 
 import com.ismolka.validation.utils.change.Difference;
 

@@ -1,9 +1,9 @@
 package com.ismolka.validation.utils.change.collection;
 
 import com.ismolka.validation.utils.change.constant.CollectionOperation;
-import com.ismolka.validation.utils.change.attribute.ValueChangesCheckerResult;
-import com.ismolka.validation.utils.change.attribute.ValueCheckDescriptor;
-import com.ismolka.validation.utils.change.attribute.DefaultValueChangesChecker;
+import com.ismolka.validation.utils.change.value.ValueChangesCheckerResult;
+import com.ismolka.validation.utils.change.value.ValueCheckDescriptor;
+import com.ismolka.validation.utils.change.value.DefaultValueChangesChecker;
 import com.ismolka.validation.validator.metainfo.FieldPath;
 import org.antlr.v4.runtime.misc.OrderedHashSet;
 import org.springframework.util.CollectionUtils;

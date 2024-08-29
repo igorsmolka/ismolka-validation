@@ -1,7 +1,7 @@
 package com.ismolka.validation.utils.change.collection;
 
 import com.ismolka.validation.utils.change.constant.CollectionOperation;
-import com.ismolka.validation.utils.change.attribute.ValueCheckDescriptor;
+import com.ismolka.validation.utils.change.value.ValueCheckDescriptor;
 import com.ismolka.validation.validator.metainfo.FieldPath;
 import com.ismolka.validation.validator.utils.MetaInfoExtractorUtil;
 import org.antlr.v4.runtime.misc.OrderedHashSet;
