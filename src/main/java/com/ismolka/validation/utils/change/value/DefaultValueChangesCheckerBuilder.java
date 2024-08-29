@@ -89,6 +89,10 @@ public class DefaultValueChangesCheckerBuilder<T> {
             }
         }
 
+        if (globalBiEqualsMethodCodeRef != null && globalEqualsMethodReflectionRef != null) {
+            throw new RuntimeException("Should be only one kind of defining global equals method for value check");
+        }
+
         if (globalEqualsMethodReflectionRef != null && ReflectionMethodUtil.methodIsNotPresent(globalEqualsMethodReflectionRef, targetClass)) {
             throw new RuntimeException(String.format("Target class %s doesnt declare the method %s", targetClass, globalEqualsMethodReflectionRef));
         }

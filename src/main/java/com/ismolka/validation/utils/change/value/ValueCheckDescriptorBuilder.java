@@ -92,6 +92,10 @@ public class ValueCheckDescriptorBuilder {
             }
         }
 
+        if (biEqualsMethodCodeRef != null && equalsMethodReflectionRef != null) {
+            throw new RuntimeException("Should be only one kind of defining global equals method for check description");
+        }
+
         if (equalsMethodReflectionRef != null && ReflectionMethodUtil.methodIsNotPresent(equalsMethodReflectionRef, sourceClass)) {
             throw new RuntimeException(String.format("Source class %s doesnt declare the method %s", sourceClass, equalsMethodReflectionRef));
         }

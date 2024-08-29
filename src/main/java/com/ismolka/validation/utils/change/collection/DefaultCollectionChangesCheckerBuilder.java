@@ -134,6 +134,10 @@ public class DefaultCollectionChangesCheckerBuilder<T> {
             }
         }
 
+        if (globalBiEqualsMethodCodeRef != null && globalEqualsMethodReflectionRef != null) {
+            throw new RuntimeException("Should be only one kind of defining global equals method for collection check");
+        }
+
         if (globalEqualsMethodReflectionRef != null && ReflectionMethodUtil.methodIsNotPresent(globalEqualsMethodReflectionRef, collectionGenericClass)) {
             throw new RuntimeException(String.format("Collection class %s doesnt declare the method %s", collectionGenericClass, globalEqualsMethodReflectionRef));
         }
