@@ -9,7 +9,7 @@ import java.lang.reflect.Method;
 import java.util.Set;
 import java.util.function.BiPredicate;
 
-public class AttributeCheckDescriptorBuilder {
+public class ValueCheckDescriptorBuilder {
 
     Class<?> sourceClass;
 
@@ -23,21 +23,21 @@ public class AttributeCheckDescriptorBuilder {
 
     ChangesChecker changesChecker;
 
-    public static AttributeCheckDescriptorBuilder builder(Class<?> sourceClass) {
-        return new AttributeCheckDescriptorBuilder(sourceClass);
+    public static ValueCheckDescriptorBuilder builder(Class<?> sourceClass) {
+        return new ValueCheckDescriptorBuilder(sourceClass);
     }
 
-    public AttributeCheckDescriptorBuilder(Class<?> sourceClass) {
+    public ValueCheckDescriptorBuilder(Class<?> sourceClass) {
         this.sourceClass = sourceClass;
     }
 
-    public AttributeCheckDescriptorBuilder attribute(String fieldPath) {
+    public ValueCheckDescriptorBuilder attribute(String fieldPath) {
         this.attribute = MetaInfoExtractorUtil.extractFieldPathMetaInfo(fieldPath, sourceClass);
 
         return this;
     }
 
-    public AttributeCheckDescriptorBuilder addFieldForEquals(String fieldForEqualsPath) {
+    public ValueCheckDescriptorBuilder addFieldForEquals(String fieldForEqualsPath) {
         if (attribute == null) {
             throw new RuntimeException("Cannot add field for equals before initializing checking field");
         }
@@ -53,25 +53,25 @@ public class AttributeCheckDescriptorBuilder {
         return this;
     }
 
-    public AttributeCheckDescriptorBuilder equalsReflectionMethod(Method equalsMethod) {
+    public ValueCheckDescriptorBuilder equalsReflectionMethod(Method equalsMethod) {
         this.equalsMethodReflectionRef = equalsMethod;
 
         return this;
     }
 
-    public AttributeCheckDescriptorBuilder biEqualsMethod(BiPredicate biEqualsMethod) {
+    public ValueCheckDescriptorBuilder biEqualsMethod(BiPredicate biEqualsMethod) {
         this.biEqualsMethodCodeRef = biEqualsMethod;
 
         return this;
     }
 
-    public AttributeCheckDescriptorBuilder changesChecker(ChangesChecker changesChecker) {
+    public ValueCheckDescriptorBuilder changesChecker(ChangesChecker changesChecker) {
         this.changesChecker = changesChecker;
 
         return this;
     }
 
-    public AttributeCheckDescriptor build() {
-        return new AttributeCheckDescriptor(attribute, equalsFields, equalsMethodReflectionRef, biEqualsMethodCodeRef, changesChecker);
+    public ValueCheckDescriptor build() {
+        return new ValueCheckDescriptor(attribute, equalsFields, equalsMethodReflectionRef, biEqualsMethodCodeRef, changesChecker);
     }
 }

@@ -1,9 +1,9 @@
 package com.ismolka.validation.utils.change.collection;
 
 import com.ismolka.validation.utils.change.constant.CollectionOperation;
-import com.ismolka.validation.utils.change.attribute.AttributeChangesCheckerResult;
-import com.ismolka.validation.utils.change.attribute.AttributeCheckDescriptor;
-import com.ismolka.validation.utils.change.attribute.DefaultAttributeChangesChecker;
+import com.ismolka.validation.utils.change.attribute.ValueChangesCheckerResult;
+import com.ismolka.validation.utils.change.attribute.ValueCheckDescriptor;
+import com.ismolka.validation.utils.change.attribute.DefaultValueChangesChecker;
 import com.ismolka.validation.validator.metainfo.FieldPath;
 import org.antlr.v4.runtime.misc.OrderedHashSet;
 import org.springframework.util.CollectionUtils;
@@ -12,14 +12,14 @@ import java.lang.reflect.Method;
 import java.util.*;
 import java.util.function.BiPredicate;
 
-public class DefaultCollectionChangesChecker<T> extends DefaultAttributeChangesChecker<T> implements CollectionChangesChecker<T> {
+public class DefaultCollectionChangesChecker<T> extends DefaultValueChangesChecker<T> implements CollectionChangesChecker<T> {
 
     private final Set<CollectionOperation> forOperations;
 
     private final Set<FieldPath> fieldsForMatching;
 
 
-    protected DefaultCollectionChangesChecker(Set<AttributeCheckDescriptor> attributesCheckDescriptors, boolean stopOnFirstDiff, Method globalEqualsMethodReflectionRef, BiPredicate<T, T> globalBiEqualsMethodCodeRef, Set<FieldPath> globalEqualsFields, Set<CollectionOperation> forOperations, Set<FieldPath> fieldsForMatching) {
+    protected DefaultCollectionChangesChecker(Set<ValueCheckDescriptor> attributesCheckDescriptors, boolean stopOnFirstDiff, Method globalEqualsMethodReflectionRef, BiPredicate<T, T> globalBiEqualsMethodCodeRef, Set<FieldPath> globalEqualsFields, Set<CollectionOperation> forOperations, Set<FieldPath> fieldsForMatching) {
         super(attributesCheckDescriptors, stopOnFirstDiff, globalEqualsMethodReflectionRef, globalBiEqualsMethodCodeRef, globalEqualsFields);
         this.forOperations = forOperations;
         this.fieldsForMatching = fieldsForMatching;
@@ -171,9 +171,9 @@ public class DefaultCollectionChangesChecker<T> extends DefaultAttributeChangesC
             return null;
         }
 
-        AttributeChangesCheckerResult attributeChangesCheckerResult = getResult(oldElement, newElement);
-        if (!attributeChangesCheckerResult.equalsResult()) {
-            return new CollectionElementDifference<>(attributeChangesCheckerResult.differenceMap(), oldElement, newElement, oldObjectIndex, newObjectIndex);
+        ValueChangesCheckerResult valueChangesCheckerResult = getResult(oldElement, newElement);
+        if (!valueChangesCheckerResult.equalsResult()) {
+            return new CollectionElementDifference<>(valueChangesCheckerResult.differenceMap(), oldElement, newElement, oldObjectIndex, newObjectIndex);
         }
 
         return null;

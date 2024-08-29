@@ -1,6 +1,5 @@
 package com.ismolka.validation.utils.change.attribute;
 
-import com.ismolka.validation.utils.change.collection.DefaultCollectionChangesCheckerBuilder;
 import com.ismolka.validation.validator.metainfo.FieldPath;
 import com.ismolka.validation.validator.utils.MetaInfoExtractorUtil;
 import org.antlr.v4.runtime.misc.OrderedHashSet;
@@ -9,11 +8,11 @@ import java.lang.reflect.Method;
 import java.util.Set;
 import java.util.function.BiPredicate;
 
-public class DefaultAttributeChangesCheckerBuilder<T> {
+public class DefaultValueChangesCheckerBuilder<T> {
 
     Class<T> clazz;
 
-    Set<AttributeCheckDescriptor> attributesCheckDescriptors;
+    Set<ValueCheckDescriptor> attributesCheckDescriptors;
 
     boolean stopOnFirstDiff;
 
@@ -23,15 +22,15 @@ public class DefaultAttributeChangesCheckerBuilder<T> {
 
     Set<FieldPath> globalEqualsFields;
 
-    public static <T> DefaultAttributeChangesCheckerBuilder<T> builder(Class<T> clazz) {
-        return new DefaultAttributeChangesCheckerBuilder<>(clazz);
+    public static <T> DefaultValueChangesCheckerBuilder<T> builder(Class<T> clazz) {
+        return new DefaultValueChangesCheckerBuilder<>(clazz);
     }
 
-    private DefaultAttributeChangesCheckerBuilder(Class<T> clazz) {
+    private DefaultValueChangesCheckerBuilder(Class<T> clazz) {
         this.clazz = clazz;
     }
 
-    public DefaultAttributeChangesCheckerBuilder<T> addAttributeToCheck(AttributeCheckDescriptor attribute) {
+    public DefaultValueChangesCheckerBuilder<T> addAttributeToCheck(ValueCheckDescriptor attribute) {
         if (attributesCheckDescriptors == null) {
             attributesCheckDescriptors = new OrderedHashSet<>();
         }
@@ -41,25 +40,25 @@ public class DefaultAttributeChangesCheckerBuilder<T> {
         return this;
     }
 
-    public DefaultAttributeChangesCheckerBuilder<T> stopOnFirstDiff() {
+    public DefaultValueChangesCheckerBuilder<T> stopOnFirstDiff() {
         this.stopOnFirstDiff = true;
 
         return this;
     }
 
-    public DefaultAttributeChangesCheckerBuilder<T> globalEqualsMethodReflectionRef(Method globalEqualsMethodReflectionRef) {
+    public DefaultValueChangesCheckerBuilder<T> globalEqualsMethodReflectionRef(Method globalEqualsMethodReflectionRef) {
         this.globalEqualsMethodReflectionRef = globalEqualsMethodReflectionRef;
 
         return this;
     }
 
-    public DefaultAttributeChangesCheckerBuilder<T> globalBiEqualsMethodCodeRef(BiPredicate<T, T> globalBiEqualsMethodCodeRef) {
+    public DefaultValueChangesCheckerBuilder<T> globalBiEqualsMethodCodeRef(BiPredicate<T, T> globalBiEqualsMethodCodeRef) {
         this.globalBiEqualsMethodCodeRef = globalBiEqualsMethodCodeRef;
 
         return this;
     }
 
-    public DefaultAttributeChangesCheckerBuilder<T> addGlobalEqualsField(String globalEqualsField) {
+    public DefaultValueChangesCheckerBuilder<T> addGlobalEqualsField(String globalEqualsField) {
         if (globalEqualsFields == null) {
             globalEqualsFields = new OrderedHashSet<>();
         }
@@ -71,7 +70,7 @@ public class DefaultAttributeChangesCheckerBuilder<T> {
         return this;
     }
 
-    public DefaultAttributeChangesChecker<T> build() {
-        return new DefaultAttributeChangesChecker<>(attributesCheckDescriptors, stopOnFirstDiff, globalEqualsMethodReflectionRef, globalBiEqualsMethodCodeRef, globalEqualsFields);
+    public DefaultValueChangesChecker<T> build() {
+        return new DefaultValueChangesChecker<>(attributesCheckDescriptors, stopOnFirstDiff, globalEqualsMethodReflectionRef, globalBiEqualsMethodCodeRef, globalEqualsFields);
     }
 }

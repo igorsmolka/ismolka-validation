@@ -1,8 +1,8 @@
 package com.ismolka.validation.utils.change;
 
-import com.ismolka.validation.utils.change.attribute.AttributeChangesCheckerResult;
+import com.ismolka.validation.utils.change.attribute.ValueChangesCheckerResult;
 
 public interface ChangesChecker<T> {
 
-    AttributeChangesCheckerResult getResult(T oldObj, T newObj);
+    ValueChangesCheckerResult getResult(T oldObj, T newObj);
 }

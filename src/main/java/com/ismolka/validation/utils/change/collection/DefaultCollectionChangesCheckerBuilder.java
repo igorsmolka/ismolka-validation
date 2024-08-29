@@ -1,9 +1,7 @@
 package com.ismolka.validation.utils.change.collection;
 
-import com.ismolka.validation.utils.change.attribute.DefaultAttributeChangesChecker;
-import com.ismolka.validation.utils.change.attribute.DefaultAttributeChangesCheckerBuilder;
 import com.ismolka.validation.utils.change.constant.CollectionOperation;
-import com.ismolka.validation.utils.change.attribute.AttributeCheckDescriptor;
+import com.ismolka.validation.utils.change.attribute.ValueCheckDescriptor;
 import com.ismolka.validation.validator.metainfo.FieldPath;
 import com.ismolka.validation.validator.utils.MetaInfoExtractorUtil;
 import org.antlr.v4.runtime.misc.OrderedHashSet;
@@ -18,7 +16,7 @@ public class DefaultCollectionChangesCheckerBuilder<T> {
 
     Class<T> collectionGenericClass;
 
-    Set<AttributeCheckDescriptor> attributesCheckDescriptors;
+    Set<ValueCheckDescriptor> attributesCheckDescriptors;
 
     boolean stopOnFirstDiff;
 
@@ -41,7 +39,7 @@ public class DefaultCollectionChangesCheckerBuilder<T> {
         this.collectionGenericClass = collectionGenericClass;
     }
 
-    public DefaultCollectionChangesCheckerBuilder<T> addAttributeToCheck(AttributeCheckDescriptor attribute) {
+    public DefaultCollectionChangesCheckerBuilder<T> addAttributeToCheck(ValueCheckDescriptor attribute) {
         if (attributesCheckDescriptors == null) {
             attributesCheckDescriptors = new OrderedHashSet<>();
         }

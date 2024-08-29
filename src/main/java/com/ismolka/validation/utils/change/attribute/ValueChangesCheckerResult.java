@@ -5,7 +5,7 @@ import com.ismolka.validation.utils.change.Difference;
 import java.util.Map;
 import java.util.Objects;
 
-public record AttributeChangesCheckerResult(
+public record ValueChangesCheckerResult(
         Map<String, Difference> differenceMap,
         boolean equalsResult
 ) implements Difference {
@@ -14,7 +14,7 @@ public record AttributeChangesCheckerResult(
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        AttributeChangesCheckerResult that = (AttributeChangesCheckerResult) o;
+        ValueChangesCheckerResult that = (ValueChangesCheckerResult) o;
         return equalsResult == that.equalsResult && Objects.equals(differenceMap, that.differenceMap);
     }
 
@@ -25,7 +25,7 @@ public record AttributeChangesCheckerResult(
 
     @Override
     public <T extends Difference> T unwrap(Class<T> type) {
-        if (type.isAssignableFrom(AttributeChangesCheckerResult.class)) {
+        if (type.isAssignableFrom(ValueChangesCheckerResult.class)) {
             return type.cast(this);
         }
 
