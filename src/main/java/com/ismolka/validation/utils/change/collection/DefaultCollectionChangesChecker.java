@@ -93,7 +93,6 @@ public class DefaultCollectionChangesChecker<T> extends DefaultValueChangesCheck
                             CollectionElementDifference<T> collectionElementDifference = new CollectionElementDifference<>(null, null, matchingElement.elementValue, null, matchingElement.elementIndex);
                             collectionDifference.get(CollectionOperation.ADD).add(collectionElementDifference);
                             if (stopOnFirstDiff) {
-                                needsStop = true;
                                 break;
                             }
                         }
