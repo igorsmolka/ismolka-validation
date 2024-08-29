@@ -1,6 +1,6 @@
 package com.ismolka.validation.utils.change.collection;
 
-import com.ismolka.validation.utils.change.constant.CollectionOperation;
+import com.ismolka.validation.utils.constant.CollectionOperation;
 import com.ismolka.validation.utils.change.Difference;
 
 import java.util.Map;
