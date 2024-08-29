@@ -13,7 +13,7 @@ public class AttributeCheckDescriptorBuilder {
 
     Class<?> sourceClass;
 
-    FieldPath fieldPath;
+    FieldPath attribute;
 
     Set<FieldPath> equalsFields;
 
@@ -31,14 +31,14 @@ public class AttributeCheckDescriptorBuilder {
         this.sourceClass = sourceClass;
     }
 
-    public AttributeCheckDescriptorBuilder field(String fieldPath) {
-        this.fieldPath = MetaInfoExtractorUtil.extractFieldPathMetaInfo(fieldPath, sourceClass);
+    public AttributeCheckDescriptorBuilder attribute(String fieldPath) {
+        this.attribute = MetaInfoExtractorUtil.extractFieldPathMetaInfo(fieldPath, sourceClass);
 
         return this;
     }
 
     public AttributeCheckDescriptorBuilder addFieldForEquals(String fieldForEqualsPath) {
-        if (fieldPath == null) {
+        if (attribute == null) {
             throw new RuntimeException("Cannot add field for equals before initializing checking field");
         }
 
@@ -46,7 +46,7 @@ public class AttributeCheckDescriptorBuilder {
             equalsFields = new OrderedHashSet<>();
         }
 
-        Class<?> attributeClass = fieldPath.getLast().clazz();
+        Class<?> attributeClass = attribute.getLast().clazz();
 
         equalsFields.add(MetaInfoExtractorUtil.extractFieldPathMetaInfo(fieldForEqualsPath, attributeClass));
 
@@ -72,6 +72,6 @@ public class AttributeCheckDescriptorBuilder {
     }
 
     public AttributeCheckDescriptor build() {
-        return new AttributeCheckDescriptor(fieldPath, equalsFields, equalsMethodReflectionRef, biEqualsMethodCodeRef, changesChecker);
+        return new AttributeCheckDescriptor(attribute, equalsFields, equalsMethodReflectionRef, biEqualsMethodCodeRef, changesChecker);
     }
 }

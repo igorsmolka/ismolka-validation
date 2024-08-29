@@ -9,7 +9,7 @@ import java.util.Set;
 import java.util.function.BiPredicate;
 
 public record AttributeCheckDescriptor(
-        FieldPath fieldPath,
+        FieldPath attribute,
 
         Set<FieldPath> equalsFields,
 
@@ -25,11 +25,11 @@ public record AttributeCheckDescriptor(
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         AttributeCheckDescriptor that = (AttributeCheckDescriptor) o;
-        return Objects.equals(fieldPath, that.fieldPath) && Objects.equals(equalsFields, that.equalsFields) && Objects.equals(equalsMethodReflectionRef, that.equalsMethodReflectionRef) && Objects.equals(biEqualsMethodCodeRef, that.biEqualsMethodCodeRef) && Objects.equals(changesChecker, that.changesChecker);
+        return Objects.equals(attribute, that.attribute) && Objects.equals(equalsFields, that.equalsFields) && Objects.equals(equalsMethodReflectionRef, that.equalsMethodReflectionRef) && Objects.equals(biEqualsMethodCodeRef, that.biEqualsMethodCodeRef) && Objects.equals(changesChecker, that.changesChecker);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(fieldPath, equalsFields, equalsMethodReflectionRef, biEqualsMethodCodeRef, changesChecker);
+        return Objects.hash(attribute, equalsFields, equalsMethodReflectionRef, biEqualsMethodCodeRef, changesChecker);
     }
 }

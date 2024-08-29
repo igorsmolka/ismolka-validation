@@ -58,7 +58,7 @@ public abstract class AbstractDbConstraintsValidator<T extends Annotation, A> ex
                 FieldPath path = MetaInfoExtractorUtil.extractFieldPathMetaInfo(validationField, clazz);
 
                 if (path.needsJoin()) {
-                    throw new IllegalArgumentException(String.format("Joins not supported in such validators, fieldPath %s, class %s, validator %s", path.path(), clazz, this.getClass()));
+                    throw new IllegalArgumentException(String.format("Joins not supported in such validators, attribute %s, class %s, validator %s", path.path(), clazz, this.getClass()));
                 }
 
                 fieldsMetaInfoResult.add(MetaInfoExtractorUtil.extractFieldPathMetaInfo(validationField, clazz));
