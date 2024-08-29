@@ -112,19 +112,9 @@ public class DefaultCollectionChangesCheckerBuilder<T> {
         return this;
     }
 
-    public DefaultCollectionChangesCheckerBuilder<T> forAllOperations() {
-        if (forOperations == null) {
-            forOperations = new HashSet<>();
-        }
-
-        forOperations.addAll(Arrays.stream(CollectionOperation.values()).toList());
-
-        return this;
-    }
-
     public DefaultCollectionChangesChecker<T> build() {
         if (CollectionUtils.isEmpty(forOperations)) {
-            forAllOperations();
+            forOperations = new HashSet<>(Arrays.stream(CollectionOperation.values()).toList());
         }
 
         if (!CollectionUtils.isEmpty(attributesCheckDescriptors) || !CollectionUtils.isEmpty(globalEqualsFields)) {
