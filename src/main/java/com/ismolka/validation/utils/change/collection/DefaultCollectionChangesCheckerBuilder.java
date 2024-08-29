@@ -117,12 +117,18 @@ public class DefaultCollectionChangesCheckerBuilder<T> {
             forOperations = new HashSet<>(Arrays.stream(CollectionOperation.values()).toList());
         }
 
-        if (!CollectionUtils.isEmpty(attributesCheckDescriptors) || !CollectionUtils.isEmpty(globalEqualsFields)) {
-            if (globalBiEqualsMethodCodeRef != null || globalEqualsMethodReflectionRef != null) {
-                throw new RuntimeException("Cannot set global equals method when attribute check descriptors or equals fields are initialized");
-            }
-        }
+        validate();
 
         return new DefaultCollectionChangesChecker<>(attributesCheckDescriptors, stopOnFirstDiff, globalEqualsMethodReflectionRef, globalBiEqualsMethodCodeRef, globalEqualsFields, forOperations, fieldsForMatching);
+    }
+
+    private void validate() {
+
+
+        if (!CollectionUtils.isEmpty(attributesCheckDescriptors) || !CollectionUtils.isEmpty(globalEqualsFields)) {
+            if (globalBiEqualsMethodCodeRef != null || globalEqualsMethodReflectionRef != null) {
+                throw new RuntimeException("Cannot set global equals method when attribute check descriptors or equals fields are defined");
+            }
+        }
     }
 }

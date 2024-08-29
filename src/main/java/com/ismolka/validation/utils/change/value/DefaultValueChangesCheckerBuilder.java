@@ -72,12 +72,16 @@ public class DefaultValueChangesCheckerBuilder<T> {
     }
 
     public DefaultValueChangesChecker<T> build() {
-        if (!CollectionUtils.isEmpty(attributesCheckDescriptors) || !CollectionUtils.isEmpty(globalEqualsFields)) {
-            if (globalBiEqualsMethodCodeRef != null || globalEqualsMethodReflectionRef != null) {
-                throw new RuntimeException("Cannot set global equals method when attribute check descriptors or equals fields are initialized");
-            }
-        }
+        validate();
 
         return new DefaultValueChangesChecker<>(attributesCheckDescriptors, stopOnFirstDiff, globalEqualsMethodReflectionRef, globalBiEqualsMethodCodeRef, globalEqualsFields);
+    }
+
+    private void validate() {
+        if (!CollectionUtils.isEmpty(attributesCheckDescriptors) || !CollectionUtils.isEmpty(globalEqualsFields)) {
+            if (globalBiEqualsMethodCodeRef != null || globalEqualsMethodReflectionRef != null) {
+                throw new RuntimeException("Cannot set global equals method when attribute check descriptors or equals fields are defined");
+            }
+        }
     }
 }

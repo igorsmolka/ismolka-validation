@@ -4,6 +4,7 @@ import com.ismolka.validation.utils.change.ChangesChecker;
 import com.ismolka.validation.validator.metainfo.FieldPath;
 import com.ismolka.validation.validator.utils.MetaInfoExtractorUtil;
 import org.antlr.v4.runtime.misc.OrderedHashSet;
+import org.springframework.util.CollectionUtils;
 
 import java.lang.reflect.Method;
 import java.util.Set;
@@ -72,6 +73,24 @@ public class ValueCheckDescriptorBuilder {
     }
 
     public ValueCheckDescriptor build() {
+        validate();
+
         return new ValueCheckDescriptor(attribute, equalsFields, equalsMethodReflectionRef, biEqualsMethodCodeRef, changesChecker);
+    }
+
+    private void validate() {
+        if (sourceClass == null) {
+            throw new RuntimeException("Source class is not defined");
+        }
+
+        if (attribute == null) {
+            throw new RuntimeException("Cannot create descriptor without attribute");
+        }
+
+        if (!CollectionUtils.isEmpty(equalsFields) || changesChecker != null) {
+            if (biEqualsMethodCodeRef != null || equalsMethodReflectionRef != null) {
+                throw new RuntimeException("Cannot set global equals method when equals fields or changes checker are defined");
+            }
+        }
     }
 }
