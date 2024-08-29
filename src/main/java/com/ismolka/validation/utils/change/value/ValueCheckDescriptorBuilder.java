@@ -14,7 +14,7 @@ public class ValueCheckDescriptorBuilder {
 
     Class<?> sourceClass;
 
-    String attribute;
+    String attributePath;
 
     Set<String> equalsFields;
 
@@ -33,7 +33,7 @@ public class ValueCheckDescriptorBuilder {
     }
 
     public ValueCheckDescriptorBuilder attribute(String fieldPath) {
-        this.attribute = fieldPath;
+        this.attributePath = fieldPath;
 
         return this;
     }
@@ -69,7 +69,7 @@ public class ValueCheckDescriptorBuilder {
     public ValueCheckDescriptor build() {
         validate();
 
-        FieldPath attributeAsFieldPath = MetaInfoExtractorUtil.extractFieldPathMetaInfo(attribute, sourceClass);
+        FieldPath attributeAsFieldPath = MetaInfoExtractorUtil.extractFieldPathMetaInfo(attributePath, sourceClass);
 
         Set<FieldPath> equalsFieldsAsFieldPaths = !CollectionUtils.isEmpty(equalsFields) ? MetaInfoExtractorUtil.extractFieldPathsMetaInfo(equalsFields.toArray(String[]::new), attributeAsFieldPath.getLast().clazz()) : new OrderedHashSet<>();
 
@@ -81,7 +81,7 @@ public class ValueCheckDescriptorBuilder {
             throw new RuntimeException("Source class is not defined");
         }
 
-        if (attribute == null) {
+        if (attributePath == null) {
             throw new RuntimeException("Cannot create descriptor without attribute");
         }
 

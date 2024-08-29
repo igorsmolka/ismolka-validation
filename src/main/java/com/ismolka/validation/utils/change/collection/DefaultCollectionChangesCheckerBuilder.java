@@ -73,8 +73,6 @@ public class DefaultCollectionChangesCheckerBuilder<T> {
             globalEqualsFields = new OrderedHashSet<>();
         }
 
-//        FieldPath fieldForMainEquals = MetaInfoExtractorUtil.extractFieldPathMetaInfo(globalEqualsField, collectionGenericClass);
-
         globalEqualsFields.add(globalEqualsField);
 
         return this;
@@ -84,8 +82,6 @@ public class DefaultCollectionChangesCheckerBuilder<T> {
         if (fieldsForMatching == null) {
             fieldsForMatching = new OrderedHashSet<>();
         }
-
-//        FieldPath fieldForMatchingPath = MetaInfoExtractorUtil.extractFieldPathMetaInfo(fieldForMatching, collectionGenericClass);
 
         fieldsForMatching.add(fieldForMatching);
 

@@ -64,8 +64,6 @@ public class DefaultValueChangesCheckerBuilder<T> {
             globalEqualsFields = new OrderedHashSet<>();
         }
 
-//        FieldPath fieldForMainEquals = MetaInfoExtractorUtil.extractFieldPathMetaInfo(globalEqualsField, clazz);
-
         globalEqualsFields.add(globalEqualsField);
 
         return this;
