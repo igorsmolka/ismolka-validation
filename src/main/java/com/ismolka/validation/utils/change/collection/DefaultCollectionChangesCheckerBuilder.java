@@ -5,6 +5,7 @@ import com.ismolka.validation.utils.change.value.ValueCheckDescriptor;
 import com.ismolka.validation.validator.metainfo.FieldPath;
 import com.ismolka.validation.validator.utils.MetaInfoExtractorUtil;
 import org.antlr.v4.runtime.misc.OrderedHashSet;
+import org.springframework.util.CollectionUtils;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -122,6 +123,12 @@ public class DefaultCollectionChangesCheckerBuilder<T> {
     }
 
     public DefaultCollectionChangesChecker<T> build() {
+        if (!CollectionUtils.isEmpty(attributesCheckDescriptors) || !CollectionUtils.isEmpty(globalEqualsFields)) {
+            if (globalBiEqualsMethodCodeRef != null || globalEqualsMethodReflectionRef != null) {
+                throw new RuntimeException("Cannot set global equals method when attribute check descriptors or equals fields are initialized");
+            }
+        }
+
         return new DefaultCollectionChangesChecker<>(attributesCheckDescriptors, stopOnFirstDiff, globalEqualsMethodReflectionRef, globalBiEqualsMethodCodeRef, globalEqualsFields, forOperations, fieldsForMatching);
     }
 }
