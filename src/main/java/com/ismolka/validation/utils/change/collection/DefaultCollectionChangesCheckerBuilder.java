@@ -1,5 +1,7 @@
 package com.ismolka.validation.utils.change.collection;
 
+import com.ismolka.validation.utils.change.attribute.DefaultAttributeChangesChecker;
+import com.ismolka.validation.utils.change.attribute.DefaultAttributeChangesCheckerBuilder;
 import com.ismolka.validation.utils.change.constant.CollectionOperation;
 import com.ismolka.validation.utils.change.attribute.AttributeCheckDescriptor;
 import com.ismolka.validation.validator.metainfo.FieldPath;
@@ -16,19 +18,19 @@ public class DefaultCollectionChangesCheckerBuilder<T> {
 
     Class<T> collectionGenericClass;
 
-    Set<AttributeCheckDescriptor> attributesToCheck;
+    Set<AttributeCheckDescriptor> attributesCheckDescriptors;
 
     boolean stopOnFirstDiff;
 
     Set<CollectionOperation> forOperations;
 
-    Method mainEqualsMethodReflectionRef;
-
-    BiPredicate<T, T> mainBiEqualsMethodCodeRef;
-
     Set<FieldPath> fieldsForMatching;
 
-    Set<FieldPath> mainEqualsFields;
+    Method globalEqualsMethodReflectionRef;
+
+    BiPredicate<T, T> globalBiEqualsMethodCodeRef;
+
+    Set<FieldPath> globalEqualsFields;
 
     public static <T> DefaultCollectionChangesCheckerBuilder<T> builder(Class<T> collectionGenericClass) {
         return new DefaultCollectionChangesCheckerBuilder<>(collectionGenericClass);
@@ -40,17 +42,41 @@ public class DefaultCollectionChangesCheckerBuilder<T> {
     }
 
     public DefaultCollectionChangesCheckerBuilder<T> addAttributeToCheck(AttributeCheckDescriptor attribute) {
-        if (attributesToCheck == null) {
-            attributesToCheck = new OrderedHashSet<>();
+        if (attributesCheckDescriptors == null) {
+            attributesCheckDescriptors = new OrderedHashSet<>();
         }
 
-        attributesToCheck.add(attribute);
+        attributesCheckDescriptors.add(attribute);
 
         return this;
     }
 
     public DefaultCollectionChangesCheckerBuilder<T> stopOnFirstDiff() {
         this.stopOnFirstDiff = true;
+
+        return this;
+    }
+
+    public DefaultCollectionChangesCheckerBuilder<T> globalEqualsMethodReflectionRef(Method globalEqualsMethodReflectionRef) {
+        this.globalEqualsMethodReflectionRef = globalEqualsMethodReflectionRef;
+
+        return this;
+    }
+
+    public DefaultCollectionChangesCheckerBuilder<T> globalBiEqualsMethodCodeRef(BiPredicate<T, T> globalBiEqualsMethodCodeRef) {
+        this.globalBiEqualsMethodCodeRef = globalBiEqualsMethodCodeRef;
+
+        return this;
+    }
+
+    public DefaultCollectionChangesCheckerBuilder<T> addGlobalEqualsField(String globalEqualsField) {
+        if (globalEqualsFields == null) {
+            globalEqualsFields = new OrderedHashSet<>();
+        }
+
+        FieldPath fieldForMainEquals = MetaInfoExtractorUtil.extractFieldPathMetaInfo(globalEqualsField, collectionGenericClass);
+
+        globalEqualsFields.add(fieldForMainEquals);
 
         return this;
     }
@@ -85,44 +111,7 @@ public class DefaultCollectionChangesCheckerBuilder<T> {
         return this;
     }
 
-    public DefaultCollectionChangesCheckerBuilder<T> mainMethodEqualsReflection(Method mainEqualsMethodReflectionRef) {
-        this.mainEqualsMethodReflectionRef = mainEqualsMethodReflectionRef;
-
-        return this;
-    }
-
-
-    public DefaultCollectionChangesCheckerBuilder<T> mainBiEqualsMethod(BiPredicate<T, T> mainBiEqualsMethodCodeRef) {
-        this.mainBiEqualsMethodCodeRef = mainBiEqualsMethodCodeRef;
-
-        return this;
-    }
-
-    public DefaultCollectionChangesCheckerBuilder<T> addFieldForMatching(String fieldPathForMatching) {
-        if (fieldsForMatching == null) {
-            fieldsForMatching = new OrderedHashSet<>();
-        }
-
-        FieldPath fieldForMatching = MetaInfoExtractorUtil.extractFieldPathMetaInfo(fieldPathForMatching, collectionGenericClass);
-
-        fieldsForMatching.add(fieldForMatching);
-
-        return this;
-    }
-
-    public DefaultCollectionChangesCheckerBuilder<T> addMainEqualsField(String mainEqualsFieldPath) {
-        if (mainEqualsFields == null) {
-            mainEqualsFields = new OrderedHashSet<>();
-        }
-
-        FieldPath fieldForMainEquals = MetaInfoExtractorUtil.extractFieldPathMetaInfo(mainEqualsFieldPath, collectionGenericClass);
-
-        mainEqualsFields.add(fieldForMainEquals);
-
-        return this;
-    }
-
     public DefaultCollectionChangesChecker<T> build() {
-        return new DefaultCollectionChangesChecker<>(collectionGenericClass, attributesToCheck, stopOnFirstDiff, forOperations, mainEqualsMethodReflectionRef, mainBiEqualsMethodCodeRef, fieldsForMatching, mainEqualsFields);
+        return new DefaultCollectionChangesChecker<>(attributesCheckDescriptors, stopOnFirstDiff, globalEqualsMethodReflectionRef, globalBiEqualsMethodCodeRef, globalEqualsFields, forOperations, fieldsForMatching);
     }
 }

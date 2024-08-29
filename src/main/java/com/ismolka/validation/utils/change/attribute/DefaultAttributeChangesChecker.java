@@ -5,27 +5,36 @@ import com.ismolka.validation.utils.change.collection.CollectionChangesChecker;
 import com.ismolka.validation.utils.change.collection.CollectionChangesCheckerResult;
 import com.ismolka.validation.utils.change.Difference;
 import com.ismolka.validation.validator.metainfo.FieldPath;
-import org.antlr.v4.runtime.misc.OrderedHashSet;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ReflectionUtils;
 
+import java.lang.reflect.Method;
 import java.util.*;
 import java.util.function.BiPredicate;
+import java.util.stream.Stream;
 
 public class DefaultAttributeChangesChecker<T> implements AttributeChangesChecker<T> {
 
-    protected Set<AttributeCheckDescriptor> attributesToCheck;
+    protected Set<AttributeCheckDescriptor> attributesCheckDescriptors;
 
     protected boolean stopOnFirstDiff;
 
-    public DefaultAttributeChangesChecker() {
-        this.attributesToCheck = new OrderedHashSet<>();
-        this.stopOnFirstDiff = false;
-    }
+    protected Method globalEqualsMethodReflectionRef;
 
-    public DefaultAttributeChangesChecker(Set<AttributeCheckDescriptor> attributesToCheck, boolean stopOnFirstDiff) {
-        this.attributesToCheck = attributesToCheck;
+    protected BiPredicate<T, T> globalBiEqualsMethodCodeRef;
+
+    protected final Set<FieldPath> globalEqualsFields;
+
+    protected DefaultAttributeChangesChecker(Set<AttributeCheckDescriptor> attributesCheckDescriptors,
+                                          boolean stopOnFirstDiff,
+                                          Method globalEqualsMethodReflectionRef,
+                                          BiPredicate<T, T> globalBiEqualsMethodCodeRef,
+                                          Set<FieldPath> globalEqualsFields) {
+        this.attributesCheckDescriptors = attributesCheckDescriptors;
         this.stopOnFirstDiff = stopOnFirstDiff;
+        this.globalEqualsMethodReflectionRef = globalEqualsMethodReflectionRef;
+        this.globalBiEqualsMethodCodeRef = globalBiEqualsMethodCodeRef;
+        this.globalEqualsFields = globalEqualsFields;
     }
 
     @Override
@@ -36,21 +45,78 @@ public class DefaultAttributeChangesChecker<T> implements AttributeChangesChecke
 
         Map<String, Difference> diffMap = new HashMap<>();
 
-        for (AttributeCheckDescriptor attributeToCheck : attributesToCheck) {
-            Object newAttrVal = attributeToCheck.attribute().getValueFromObject(newObj);
-            Object oldAttrVal = attributeToCheck.attribute().getValueFromObject(oldObj);
+        if (!CollectionUtils.isEmpty(attributesCheckDescriptors)) {
+            for (AttributeCheckDescriptor attributeToCheck : attributesCheckDescriptors) {
+                Object newAttrVal = attributeToCheck.attribute().getValueFromObject(newObj);
+                Object oldAttrVal = attributeToCheck.attribute().getValueFromObject(oldObj);
 
-            checkWithInnerCheckerAndPutInMapIfHasDiff(attributeToCheck, newAttrVal, oldAttrVal, attributeToCheck.changesChecker(), diffMap);
+                checkByAttributeDescriptorAndPutDiffInMap(attributeToCheck, newAttrVal, oldAttrVal, attributeToCheck.changesChecker(), diffMap);
 
-            if (!diffMap.isEmpty() && stopOnFirstDiff) {
-                break;
+                if (!diffMap.isEmpty() && stopOnFirstDiff) {
+                    break;
+                }
             }
+        } else {
+            checkByGlobalSettingsAndPutDiffInMap(oldObj, newObj, diffMap);
         }
 
         return new AttributeChangesCheckerResult(diffMap, diffMap.isEmpty());
     }
 
-    private void checkWithInnerCheckerAndPutInMapIfHasDiff(AttributeCheckDescriptor attributeToCheck, Object newAttrVal, Object oldAttrVal, ChangesChecker<?> changesChecker, Map<String, Difference> diffMap) {
+    private void checkByGlobalSettingsAndPutDiffInMap(T oldObj, T newObj, Map<String, Difference> diffMap) {
+        if (oldObj == newObj) {
+            return;
+        }
+
+        Class<T> sourceClass = (Class<T>) Stream.of(newObj, oldObj).filter(Objects::nonNull).findFirst().get().getClass();
+
+        if (globalEqualsMethodReflectionRef != null) {
+            T firstNonNull = Stream.of(newObj, oldObj).filter(Objects::nonNull).findFirst().get();
+            T argObj = Stream.of(newObj, oldObj).filter(obj -> obj != firstNonNull).findFirst().get();
+
+            Boolean result = (Boolean) ReflectionUtils.invokeMethod(globalEqualsMethodReflectionRef, firstNonNull, argObj);
+            if (result != null && !result) {
+                diffMap.put(null, new AttributeDifference<>(null, null, null, sourceClass, oldObj, newObj));
+            } else {
+                return;
+            }
+        }
+
+        if (!CollectionUtils.isEmpty(globalEqualsFields)) {
+            for (FieldPath equalsField : globalEqualsFields) {
+                Class<?> attributeClass = equalsField.getLast().clazz();
+                Class<?> attributeDeclaringClass = equalsField.getLast().declaringClass();
+                Object oldObjVal = equalsField.getValueFromObject(oldObj);
+                Object newObjVal = equalsField.getValueFromObject(newObj);
+
+                if (!Objects.equals(oldObjVal, newObjVal)) {
+                    diffMap.put(equalsField.path(), new AttributeDifference<>(equalsField.path(), sourceClass, attributeDeclaringClass, (Class) attributeClass, oldObjVal, newObjVal));
+                    if (stopOnFirstDiff) {
+                        return;
+                    }
+                }
+            }
+
+            return;
+        }
+
+        if (globalBiEqualsMethodCodeRef != null) {
+            boolean isEquals = globalBiEqualsMethodCodeRef.test(oldObj, newObj);
+
+            if (!isEquals) {
+                diffMap.put(null, new AttributeDifference<>(null, null, null, sourceClass, oldObj, newObj));
+            }
+
+            return;
+        }
+
+        boolean equalsResult = Objects.equals(oldObj, newObj);
+        if (!equalsResult) {
+            diffMap.put(null, new AttributeDifference<>(null, null, null, sourceClass, oldObj, newObj));
+        }
+    }
+
+    private void checkByAttributeDescriptorAndPutDiffInMap(AttributeCheckDescriptor attributeToCheck, Object newAttrVal, Object oldAttrVal, ChangesChecker<?> changesChecker, Map<String, Difference> diffMap) {
         if (newAttrVal == oldAttrVal) {
             return;
         }
