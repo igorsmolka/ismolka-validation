@@ -1,7 +1,5 @@
-package com.ismolka.validation.validator.utils;
+package com.ismolka.validation.utils.metainfo;
 
-import com.ismolka.validation.validator.metainfo.FieldMetaInfo;
-import com.ismolka.validation.validator.metainfo.FieldPath;
 import jakarta.persistence.*;
 import org.antlr.v4.runtime.misc.OrderedHashSet;
 import org.slf4j.Logger;

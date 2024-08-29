@@ -1,7 +1,8 @@
 package com.ismolka.validation.utils.change.value;
 
-import com.ismolka.validation.validator.metainfo.FieldPath;
-import com.ismolka.validation.validator.utils.MetaInfoExtractorUtil;
+import com.ismolka.validation.utils.metainfo.FieldPath;
+import com.ismolka.validation.utils.metainfo.MetaInfoExtractorUtil;
+import com.ismolka.validation.utils.reflection.ReflectionMethodUtil;
 import org.antlr.v4.runtime.misc.OrderedHashSet;
 import org.springframework.util.CollectionUtils;
 
@@ -11,7 +12,7 @@ import java.util.function.BiPredicate;
 
 public class DefaultValueChangesCheckerBuilder<T> {
 
-    Class<T> clazz;
+    Class<T> targetClass;
 
     Set<ValueCheckDescriptor> attributesCheckDescriptors;
 
@@ -27,8 +28,8 @@ public class DefaultValueChangesCheckerBuilder<T> {
         return new DefaultValueChangesCheckerBuilder<>(clazz);
     }
 
-    private DefaultValueChangesCheckerBuilder(Class<T> clazz) {
-        this.clazz = clazz;
+    private DefaultValueChangesCheckerBuilder(Class<T> targetClass) {
+        this.targetClass = targetClass;
     }
 
     public DefaultValueChangesCheckerBuilder<T> addAttributeToCheck(ValueCheckDescriptor attribute) {
@@ -72,13 +73,13 @@ public class DefaultValueChangesCheckerBuilder<T> {
     public DefaultValueChangesChecker<T> build() {
         validate();
 
-        Set<FieldPath> equalsFieldsAsFieldPaths = !CollectionUtils.isEmpty(globalEqualsFields) ? MetaInfoExtractorUtil.extractFieldPathsMetaInfo(globalEqualsFields.toArray(String[]::new), clazz) : new OrderedHashSet<>();
+        Set<FieldPath> equalsFieldsAsFieldPaths = !CollectionUtils.isEmpty(globalEqualsFields) ? MetaInfoExtractorUtil.extractFieldPathsMetaInfo(globalEqualsFields.toArray(String[]::new), targetClass) : new OrderedHashSet<>();
 
         return new DefaultValueChangesChecker<>(attributesCheckDescriptors, stopOnFirstDiff, globalEqualsMethodReflectionRef, globalBiEqualsMethodCodeRef, equalsFieldsAsFieldPaths);
     }
 
     private void validate() {
-        if (clazz == null) {
+        if (targetClass == null) {
             throw new RuntimeException("Target class is not defined");
         }
 
@@ -86,6 +87,10 @@ public class DefaultValueChangesCheckerBuilder<T> {
             if (globalBiEqualsMethodCodeRef != null || globalEqualsMethodReflectionRef != null) {
                 throw new RuntimeException("Cannot set global equals method when attribute check descriptors or equals fields are defined");
             }
+        }
+
+        if (globalEqualsMethodReflectionRef != null && ReflectionMethodUtil.methodIsNotPresent(globalEqualsMethodReflectionRef, targetClass)) {
+            throw new RuntimeException(String.format("Target class %s doesnt declare the method %s", targetClass, globalEqualsMethodReflectionRef));
         }
     }
 }

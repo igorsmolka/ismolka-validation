@@ -4,7 +4,7 @@ import com.ismolka.validation.utils.change.constant.CollectionOperation;
 import com.ismolka.validation.utils.change.value.ValueChangesCheckerResult;
 import com.ismolka.validation.utils.change.value.ValueCheckDescriptor;
 import com.ismolka.validation.utils.change.value.DefaultValueChangesChecker;
-import com.ismolka.validation.validator.metainfo.FieldPath;
+import com.ismolka.validation.utils.metainfo.FieldPath;
 import org.antlr.v4.runtime.misc.OrderedHashSet;
 import org.springframework.util.CollectionUtils;
 

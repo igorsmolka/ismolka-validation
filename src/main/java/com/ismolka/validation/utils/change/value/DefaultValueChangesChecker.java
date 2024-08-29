@@ -4,7 +4,7 @@ import com.ismolka.validation.utils.change.ChangesChecker;
 import com.ismolka.validation.utils.change.collection.CollectionChangesChecker;
 import com.ismolka.validation.utils.change.collection.CollectionChangesCheckerResult;
 import com.ismolka.validation.utils.change.Difference;
-import com.ismolka.validation.validator.metainfo.FieldPath;
+import com.ismolka.validation.utils.metainfo.FieldPath;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ReflectionUtils;
 

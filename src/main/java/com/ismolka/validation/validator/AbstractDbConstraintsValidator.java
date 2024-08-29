@@ -1,8 +1,8 @@
 package com.ismolka.validation.validator;
 
 import com.ismolka.validation.constraints.inner.ConstraintKey;
-import com.ismolka.validation.validator.metainfo.FieldPath;
-import com.ismolka.validation.validator.utils.MetaInfoExtractorUtil;
+import com.ismolka.validation.utils.metainfo.FieldPath;
+import com.ismolka.validation.utils.metainfo.MetaInfoExtractorUtil;
 import jakarta.persistence.criteria.*;
 import jakarta.validation.ConstraintValidator;
 import org.antlr.v4.runtime.misc.OrderedHashSet;

@@ -2,7 +2,7 @@ package com.ismolka.validation.validator;
 
 import com.ismolka.validation.constraints.UniqueValidationConstraints;
 import com.ismolka.validation.constraints.inner.ConstraintKey;
-import com.ismolka.validation.validator.metainfo.FieldPath;
+import com.ismolka.validation.utils.metainfo.FieldPath;
 import jakarta.persistence.TypedQuery;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;

@@ -1,4 +1,4 @@
-package com.ismolka.validation.validator.metainfo;
+package com.ismolka.validation.utils.metainfo;
 
 import java.util.List;
 import java.util.Objects;

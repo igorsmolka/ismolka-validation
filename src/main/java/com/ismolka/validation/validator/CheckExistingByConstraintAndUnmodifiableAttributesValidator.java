@@ -4,9 +4,9 @@ import com.ismolka.validation.constraints.CheckExistingByConstraintAndUnmodifiab
 import com.ismolka.validation.utils.change.constant.CollectionOperation;
 import com.ismolka.validation.constraints.inner.UnmodifiableAttribute;
 import com.ismolka.validation.constraints.inner.UnmodifiableCollection;
-import com.ismolka.validation.validator.metainfo.FieldPath;
+import com.ismolka.validation.utils.metainfo.FieldPath;
 import com.ismolka.validation.validator.utils.HibernateConstraintValidationUtils;
-import com.ismolka.validation.validator.utils.MetaInfoExtractorUtil;
+import com.ismolka.validation.utils.metainfo.MetaInfoExtractorUtil;
 import jakarta.persistence.EntityGraph;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;

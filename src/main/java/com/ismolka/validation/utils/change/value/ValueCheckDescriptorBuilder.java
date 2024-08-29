@@ -1,8 +1,9 @@
 package com.ismolka.validation.utils.change.value;
 
 import com.ismolka.validation.utils.change.ChangesChecker;
-import com.ismolka.validation.validator.metainfo.FieldPath;
-import com.ismolka.validation.validator.utils.MetaInfoExtractorUtil;
+import com.ismolka.validation.utils.metainfo.FieldPath;
+import com.ismolka.validation.utils.metainfo.MetaInfoExtractorUtil;
+import com.ismolka.validation.utils.reflection.ReflectionMethodUtil;
 import org.antlr.v4.runtime.misc.OrderedHashSet;
 import org.springframework.util.CollectionUtils;
 
@@ -89,6 +90,10 @@ public class ValueCheckDescriptorBuilder {
             if (biEqualsMethodCodeRef != null || equalsMethodReflectionRef != null) {
                 throw new RuntimeException("Cannot set global equals method when equals fields or changes checker are defined");
             }
+        }
+
+        if (equalsMethodReflectionRef != null && ReflectionMethodUtil.methodIsNotPresent(equalsMethodReflectionRef, sourceClass)) {
+            throw new RuntimeException(String.format("Source class %s doesnt declare the method %s", sourceClass, equalsMethodReflectionRef));
         }
     }
 }

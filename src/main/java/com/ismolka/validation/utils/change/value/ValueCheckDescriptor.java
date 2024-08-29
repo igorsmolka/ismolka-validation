@@ -1,7 +1,7 @@
 package com.ismolka.validation.utils.change.value;
 
 import com.ismolka.validation.utils.change.ChangesChecker;
-import com.ismolka.validation.validator.metainfo.FieldPath;
+import com.ismolka.validation.utils.metainfo.FieldPath;
 
 import java.lang.reflect.Method;
 import java.util.Objects;
