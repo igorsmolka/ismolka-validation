@@ -4,8 +4,8 @@ import com.ismolka.validation.utils.change.Difference;
 
 import java.util.Objects;
 
-public record ValueDifference<Q, F>(String valueFieldPath,
-                                    Class<Q> valueFieldRootClass,
+public record ValueDifference<F>(String valueFieldPath,
+                                    Class<?> valueFieldRootClass,
 
                                     Class<?> valueFieldSourceClass,
                                     Class<F> valueClass,
@@ -25,7 +25,7 @@ public record ValueDifference<Q, F>(String valueFieldPath,
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        ValueDifference<?, ?> that = (ValueDifference<?, ?>) o;
+        ValueDifference<?> that = (ValueDifference<?>) o;
         return Objects.equals(valueFieldPath, that.valueFieldPath) && Objects.equals(valueFieldRootClass, that.valueFieldRootClass) && Objects.equals(valueClass, that.valueClass) && Objects.equals(oldValue, that.oldValue) && Objects.equals(newValue, that.newValue);
     }
 
