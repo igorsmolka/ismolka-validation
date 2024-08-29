@@ -55,7 +55,7 @@ public class DefaultCollectionChangesChecker<T> extends DefaultAttributeChangesC
 
         boolean needsStop = false;
 
-        if (!fieldsForMatching.isEmpty()) {
+        if (!CollectionUtils.isEmpty(fieldsForMatching)) {
             Map<String, MatchingElement> collectionByKeyMap = new HashMap<>();
             int newObjIndex = 0;
             for (Object newObject : newCollection) {
