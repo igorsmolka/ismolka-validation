@@ -23,13 +23,13 @@ public class DefaultCollectionChangesCheckerBuilder<T> {
 
     Set<CollectionOperation> forOperations;
 
-    Set<FieldPath> fieldsForMatching;
+    Set<String> fieldsForMatching;
 
     Method globalEqualsMethodReflectionRef;
 
     BiPredicate<T, T> globalBiEqualsMethodCodeRef;
 
-    Set<FieldPath> globalEqualsFields;
+    Set<String> globalEqualsFields;
 
     public static <T> DefaultCollectionChangesCheckerBuilder<T> builder(Class<T> collectionGenericClass) {
         return new DefaultCollectionChangesCheckerBuilder<>(collectionGenericClass);
@@ -73,9 +73,9 @@ public class DefaultCollectionChangesCheckerBuilder<T> {
             globalEqualsFields = new OrderedHashSet<>();
         }
 
-        FieldPath fieldForMainEquals = MetaInfoExtractorUtil.extractFieldPathMetaInfo(globalEqualsField, collectionGenericClass);
+//        FieldPath fieldForMainEquals = MetaInfoExtractorUtil.extractFieldPathMetaInfo(globalEqualsField, collectionGenericClass);
 
-        globalEqualsFields.add(fieldForMainEquals);
+        globalEqualsFields.add(globalEqualsField);
 
         return this;
     }
@@ -85,9 +85,9 @@ public class DefaultCollectionChangesCheckerBuilder<T> {
             fieldsForMatching = new OrderedHashSet<>();
         }
 
-        FieldPath fieldForMatchingPath = MetaInfoExtractorUtil.extractFieldPathMetaInfo(fieldForMatching, collectionGenericClass);
+//        FieldPath fieldForMatchingPath = MetaInfoExtractorUtil.extractFieldPathMetaInfo(fieldForMatching, collectionGenericClass);
 
-        fieldsForMatching.add(fieldForMatchingPath);
+        fieldsForMatching.add(fieldForMatching);
 
         return this;
     }
@@ -119,11 +119,17 @@ public class DefaultCollectionChangesCheckerBuilder<T> {
 
         validate();
 
-        return new DefaultCollectionChangesChecker<>(attributesCheckDescriptors, stopOnFirstDiff, globalEqualsMethodReflectionRef, globalBiEqualsMethodCodeRef, globalEqualsFields, forOperations, fieldsForMatching);
+        Set<FieldPath> globalEqualsFieldsAsFieldPaths = !CollectionUtils.isEmpty(globalEqualsFields) ? MetaInfoExtractorUtil.extractFieldPathsMetaInfo(globalEqualsFields.toArray(String[]::new), collectionGenericClass) : new OrderedHashSet<>();
+
+        Set<FieldPath> fieldsForMatchingAsFieldPaths = !CollectionUtils.isEmpty(fieldsForMatching) ? MetaInfoExtractorUtil.extractFieldPathsMetaInfo(fieldsForMatching.toArray(String[]::new), collectionGenericClass) : new OrderedHashSet<>();
+
+        return new DefaultCollectionChangesChecker<>(attributesCheckDescriptors, stopOnFirstDiff, globalEqualsMethodReflectionRef, globalBiEqualsMethodCodeRef, globalEqualsFieldsAsFieldPaths, forOperations, fieldsForMatchingAsFieldPaths);
     }
 
     private void validate() {
-
+        if (collectionGenericClass == null) {
+            throw new RuntimeException("Collection generic class is not defined");
+        }
 
         if (!CollectionUtils.isEmpty(attributesCheckDescriptors) || !CollectionUtils.isEmpty(globalEqualsFields)) {
             if (globalBiEqualsMethodCodeRef != null || globalEqualsMethodReflectionRef != null) {

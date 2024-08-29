@@ -14,9 +14,9 @@ public class ValueCheckDescriptorBuilder {
 
     Class<?> sourceClass;
 
-    FieldPath attribute;
+    String attribute;
 
-    Set<FieldPath> equalsFields;
+    Set<String> equalsFields;
 
     Method equalsMethodReflectionRef;
 
@@ -33,23 +33,17 @@ public class ValueCheckDescriptorBuilder {
     }
 
     public ValueCheckDescriptorBuilder attribute(String fieldPath) {
-        this.attribute = MetaInfoExtractorUtil.extractFieldPathMetaInfo(fieldPath, sourceClass);
+        this.attribute = fieldPath;
 
         return this;
     }
 
     public ValueCheckDescriptorBuilder addFieldForEquals(String fieldForEqualsPath) {
-        if (attribute == null) {
-            throw new RuntimeException("Cannot add field for equals before initializing checking field");
-        }
-
         if (equalsFields == null) {
             equalsFields = new OrderedHashSet<>();
         }
 
-        Class<?> attributeClass = attribute.getLast().clazz();
-
-        equalsFields.add(MetaInfoExtractorUtil.extractFieldPathMetaInfo(fieldForEqualsPath, attributeClass));
+        equalsFields.add(fieldForEqualsPath);
 
         return this;
     }
@@ -75,7 +69,11 @@ public class ValueCheckDescriptorBuilder {
     public ValueCheckDescriptor build() {
         validate();
 
-        return new ValueCheckDescriptor(attribute, equalsFields, equalsMethodReflectionRef, biEqualsMethodCodeRef, changesChecker);
+        FieldPath attributeAsFieldPath = MetaInfoExtractorUtil.extractFieldPathMetaInfo(attribute, sourceClass);
+
+        Set<FieldPath> equalsFieldsAsFieldPaths = !CollectionUtils.isEmpty(equalsFields) ? MetaInfoExtractorUtil.extractFieldPathsMetaInfo(equalsFields.toArray(String[]::new), attributeAsFieldPath.getLast().clazz()) : new OrderedHashSet<>();
+
+        return new ValueCheckDescriptor(attributeAsFieldPath, equalsFieldsAsFieldPaths, equalsMethodReflectionRef, biEqualsMethodCodeRef, changesChecker);
     }
 
     private void validate() {

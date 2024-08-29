@@ -21,7 +21,7 @@ public class DefaultValueChangesCheckerBuilder<T> {
 
     BiPredicate<T, T> globalBiEqualsMethodCodeRef;
 
-    Set<FieldPath> globalEqualsFields;
+    Set<String> globalEqualsFields;
 
     public static <T> DefaultValueChangesCheckerBuilder<T> builder(Class<T> clazz) {
         return new DefaultValueChangesCheckerBuilder<>(clazz);
@@ -64,9 +64,9 @@ public class DefaultValueChangesCheckerBuilder<T> {
             globalEqualsFields = new OrderedHashSet<>();
         }
 
-        FieldPath fieldForMainEquals = MetaInfoExtractorUtil.extractFieldPathMetaInfo(globalEqualsField, clazz);
+//        FieldPath fieldForMainEquals = MetaInfoExtractorUtil.extractFieldPathMetaInfo(globalEqualsField, clazz);
 
-        globalEqualsFields.add(fieldForMainEquals);
+        globalEqualsFields.add(globalEqualsField);
 
         return this;
     }
@@ -74,10 +74,16 @@ public class DefaultValueChangesCheckerBuilder<T> {
     public DefaultValueChangesChecker<T> build() {
         validate();
 
-        return new DefaultValueChangesChecker<>(attributesCheckDescriptors, stopOnFirstDiff, globalEqualsMethodReflectionRef, globalBiEqualsMethodCodeRef, globalEqualsFields);
+        Set<FieldPath> equalsFieldsAsFieldPaths = !CollectionUtils.isEmpty(globalEqualsFields) ? MetaInfoExtractorUtil.extractFieldPathsMetaInfo(globalEqualsFields.toArray(String[]::new), clazz) : new OrderedHashSet<>();
+
+        return new DefaultValueChangesChecker<>(attributesCheckDescriptors, stopOnFirstDiff, globalEqualsMethodReflectionRef, globalBiEqualsMethodCodeRef, equalsFieldsAsFieldPaths);
     }
 
     private void validate() {
+        if (clazz == null) {
+            throw new RuntimeException("Target class is not defined");
+        }
+
         if (!CollectionUtils.isEmpty(attributesCheckDescriptors) || !CollectionUtils.isEmpty(globalEqualsFields)) {
             if (globalBiEqualsMethodCodeRef != null || globalEqualsMethodReflectionRef != null) {
                 throw new RuntimeException("Cannot set global equals method when attribute check descriptors or equals fields are defined");
