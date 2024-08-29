@@ -81,6 +81,18 @@ public class DefaultCollectionChangesCheckerBuilder<T> {
         return this;
     }
 
+    public DefaultCollectionChangesCheckerBuilder<T> addFieldForMatching(String fieldForMatching) {
+        if (fieldsForMatching == null) {
+            fieldsForMatching = new OrderedHashSet<>();
+        }
+
+        FieldPath fieldForMatchingPath = MetaInfoExtractorUtil.extractFieldPathMetaInfo(fieldForMatching, collectionGenericClass);
+
+        fieldsForMatching.add(fieldForMatchingPath);
+
+        return this;
+    }
+
     public DefaultCollectionChangesCheckerBuilder<T> forOperation(CollectionOperation operation) {
         if (forOperations == null) {
             forOperations = new HashSet<>();
