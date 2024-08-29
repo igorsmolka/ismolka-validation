@@ -1,6 +1,6 @@
 package com.ismolka.validation.utils.change.collection;
 
-import com.ismolka.validation.constraints.constant.CollectionOperation;
+import com.ismolka.validation.utils.change.constant.CollectionOperation;
 import com.ismolka.validation.utils.change.Difference;
 import com.ismolka.validation.utils.change.attribute.AttributeChangesCheckerResult;
 import com.ismolka.validation.utils.change.attribute.AttributeDifference;

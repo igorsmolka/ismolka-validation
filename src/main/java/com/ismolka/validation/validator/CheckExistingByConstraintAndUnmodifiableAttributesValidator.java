@@ -1,7 +1,7 @@
 package com.ismolka.validation.validator;
 
 import com.ismolka.validation.constraints.CheckExistingByConstraintAndUnmodifiableAttributes;
-import com.ismolka.validation.constraints.constant.CollectionOperation;
+import com.ismolka.validation.utils.change.constant.CollectionOperation;
 import com.ismolka.validation.constraints.inner.UnmodifiableAttribute;
 import com.ismolka.validation.constraints.inner.UnmodifiableCollection;
 import com.ismolka.validation.validator.metainfo.FieldPath;

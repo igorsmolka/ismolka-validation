@@ -1,6 +1,6 @@
 package com.ismolka.validation.utils.change.collection;
 
-import com.ismolka.validation.constraints.constant.CollectionOperation;
+import com.ismolka.validation.utils.change.constant.CollectionOperation;
 import com.ismolka.validation.utils.change.attribute.AttributeCheckDescriptor;
 import com.ismolka.validation.validator.metainfo.FieldPath;
 import com.ismolka.validation.validator.utils.MetaInfoExtractorUtil;

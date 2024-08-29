@@ -1,6 +1,6 @@
 package com.ismolka.validation.constraints.inner;
 
-import com.ismolka.validation.constraints.constant.CollectionOperation;
+import com.ismolka.validation.utils.change.constant.CollectionOperation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
