@@ -5,7 +5,6 @@ import com.ismolka.validation.utils.change.Difference;
 import java.util.Objects;
 
 public record AttributeDifference(String field,
-                                  Class<?> sourceClass,
                                   Class<?> fieldClass,
                                   Object oldVal,
                                   Object newVal) implements Difference {
@@ -24,11 +23,11 @@ public record AttributeDifference(String field,
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         AttributeDifference that = (AttributeDifference) o;
-        return Objects.equals(field, that.field) && Objects.equals(sourceClass, that.sourceClass) && Objects.equals(fieldClass, that.fieldClass) && Objects.equals(oldVal, that.oldVal) && Objects.equals(newVal, that.newVal);
+        return Objects.equals(field, that.field) && Objects.equals(fieldClass, that.fieldClass) && Objects.equals(oldVal, that.oldVal) && Objects.equals(newVal, that.newVal);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(field, sourceClass, fieldClass, oldVal, newVal);
+        return Objects.hash(field, fieldClass, oldVal, newVal);
     }
 }

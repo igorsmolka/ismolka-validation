@@ -1,7 +1,9 @@
 package com.ismolka.validation.utils.change.collection;
 
 import com.ismolka.validation.constraints.constant.CollectionOperation;
+import com.ismolka.validation.utils.change.Difference;
 import com.ismolka.validation.utils.change.attribute.AttributeChangesCheckerResult;
+import com.ismolka.validation.utils.change.attribute.AttributeDifference;
 import com.ismolka.validation.utils.change.attribute.AttributeMetaInfo;
 import com.ismolka.validation.utils.change.attribute.DefaultAttributeChangesChecker;
 import com.ismolka.validation.validator.metainfo.FieldPath;
@@ -207,11 +209,14 @@ public class DefaultCollectionChangesChecker<T> extends DefaultAttributeChangesC
         if (!CollectionUtils.isEmpty(mainEqualsFields)) {
             //todo заполнять???
             for (FieldPath equalsField : mainEqualsFields) {
+                Class<?> attributeClass = equalsField.getLast().clazz();
                 Object oldObjVal = equalsField.getValueFromObject(oldElement);
                 Object newObjVal = equalsField.getValueFromObject(newElement);
 
                 if (!Objects.equals(oldObjVal, newObjVal)) {
-                    return new CollectionElementDifference(null, oldElement, newElement, oldObjectIndex, newObjectIndex);
+                    Map<String, Difference> diffMap = new HashMap<>();
+                    diffMap.put(equalsField.path(), new AttributeDifference(equalsField.path(), attributeClass, oldObjVal, newObjVal));
+                    return new CollectionElementDifference(diffMap, oldElement, newElement, oldObjectIndex, newObjectIndex);
                 }
             }
         }
@@ -229,6 +234,11 @@ public class DefaultCollectionChangesChecker<T> extends DefaultAttributeChangesC
             if (!resultFromAttributesCheck.equalsResult()) {
                 return new CollectionElementDifference(resultFromAttributesCheck.differenceMap(), oldElement, newElement, oldObjectIndex, newObjectIndex);
             }
+        }
+
+        boolean equalsResult = Objects.equals(oldElement, newElement);
+        if (!equalsResult) {
+            return new CollectionElementDifference(null, oldElement, newElement, oldObjectIndex, newObjectIndex);
         }
 
         return null;

@@ -40,14 +40,11 @@ public class DefaultAttributeChangesChecker<T> implements AttributeChangesChecke
 
         Map<String, Difference> diffMap = new HashMap<>();
 
-        Object firstNonNull = Stream.of(newObj, oldObj).filter(Objects::nonNull).findFirst().get();
-        Class<?> sourceClass = firstNonNull.getClass();
-
         for (AttributeMetaInfo attributeToCheck : attributesToCheck) {
             Object newAttrVal = attributeToCheck.fieldPath().getValueFromObject(newObj);
             Object oldAttrVal = attributeToCheck.fieldPath().getValueFromObject(oldObj);
 
-            checkWithInnerCheckerAndPutInMapIfHasDiff(attributeToCheck, newAttrVal, oldAttrVal, attributeToCheck.changesChecker(), diffMap, sourceClass);
+            checkWithInnerCheckerAndPutInMapIfHasDiff(attributeToCheck, newAttrVal, oldAttrVal, attributeToCheck.changesChecker(), diffMap);
 
             if (!diffMap.isEmpty() && stopOnFirstDiff) {
                 break;
@@ -57,13 +54,13 @@ public class DefaultAttributeChangesChecker<T> implements AttributeChangesChecke
         return new AttributeChangesCheckerResult(diffMap, diffMap.isEmpty());
     }
 
-    private void checkWithInnerCheckerAndPutInMapIfHasDiff(AttributeMetaInfo attributeToCheck, Object newAttrVal, Object oldAttrVal, ChangesChecker changesChecker, Map<String, Difference> diffMap, Class<?> sourceClass) {
+    private void checkWithInnerCheckerAndPutInMapIfHasDiff(AttributeMetaInfo attributeToCheck, Object newAttrVal, Object oldAttrVal, ChangesChecker changesChecker, Map<String, Difference> diffMap) {
         if (newAttrVal == oldAttrVal) {
             return;
         }
 
         if (newAttrVal == null || oldAttrVal == null) {
-            diffMap.put(attributeToCheck.fieldPath().path(), new AttributeDifference(attributeToCheck.fieldPath().path(), sourceClass, attributeToCheck.fieldPath().clazz(), oldAttrVal, newAttrVal));
+            diffMap.put(attributeToCheck.fieldPath().path(), new AttributeDifference(attributeToCheck.fieldPath().path(), attributeToCheck.fieldPath().clazz(), oldAttrVal, newAttrVal));
             return;
         }
 
@@ -92,7 +89,7 @@ public class DefaultAttributeChangesChecker<T> implements AttributeChangesChecke
             Boolean result = (Boolean) ReflectionUtils.invokeMethod(attributeToCheck.equalsMethodReflectionRef(), oldAttrVal, newAttrVal);
 
             if (result != null && result) {
-                diffMap.put(attributeToCheck.fieldPath().path(), new AttributeDifference(attributeToCheck.fieldPath().path(), sourceClass, attributeToCheck.fieldPath().clazz(), oldAttrVal, newAttrVal));
+                diffMap.put(attributeToCheck.fieldPath().path(), new AttributeDifference(attributeToCheck.fieldPath().path(), attributeToCheck.fieldPath().clazz(), oldAttrVal, newAttrVal));
             }
 
             return;
@@ -105,7 +102,7 @@ public class DefaultAttributeChangesChecker<T> implements AttributeChangesChecke
                 Object newObjVal = equalsField.getValueFromObject(newAttrVal);
 
                 if (!Objects.equals(oldObjVal, newObjVal)) {
-                    diffMap.put(attributeToCheck.fieldPath().path(), new AttributeDifference(equalsField.path(), sourceClass, attributeClass, oldObjVal, newObjVal));
+                    diffMap.put(attributeToCheck.fieldPath().path(), new AttributeDifference(equalsField.path(), attributeClass, oldObjVal, newObjVal));
                 }
             }
 
@@ -115,13 +112,13 @@ public class DefaultAttributeChangesChecker<T> implements AttributeChangesChecke
         if (attributeToCheck.biEqualsMethodCodeRef() != null) {
             boolean biEqualsResult = attributeToCheck.biEqualsMethodCodeRef().test(oldAttrVal, newAttrVal);
             if (!biEqualsResult) {
-                diffMap.put(attributeToCheck.fieldPath().path(), new AttributeDifference(attributeToCheck.fieldPath().path(), sourceClass, attributeToCheck.fieldPath().clazz(), oldAttrVal, newAttrVal));
+                diffMap.put(attributeToCheck.fieldPath().path(), new AttributeDifference(attributeToCheck.fieldPath().path(), attributeToCheck.fieldPath().clazz(), oldAttrVal, newAttrVal));
             }
         }
 
         boolean equalsResult = Objects.equals(newAttrVal, oldAttrVal);
         if (!equalsResult) {
-            diffMap.put(attributeToCheck.fieldPath().path(), new AttributeDifference(attributeToCheck.fieldPath().path(), sourceClass, attributeToCheck.fieldPath().clazz(), oldAttrVal, newAttrVal));
+            diffMap.put(attributeToCheck.fieldPath().path(), new AttributeDifference(attributeToCheck.fieldPath().path(), attributeToCheck.fieldPath().clazz(), oldAttrVal, newAttrVal));
         }
     }
 

@@ -19,6 +19,10 @@ public record FieldMetaInfo(String name,
 ) {
 
     public Object getValueFromObject(Object obj) {
+        if (obj == null) {
+            return null;
+        }
+
         if (readMethod != null) {
             return ReflectionUtils.invokeMethod(readMethod, obj);
         }
