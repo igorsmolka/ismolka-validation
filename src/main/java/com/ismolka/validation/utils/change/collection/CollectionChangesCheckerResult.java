@@ -7,14 +7,14 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-public record CollectionChangesCheckerResult(Map<CollectionOperation, Set<CollectionElementDifference>> collectionDifferenceMap,
+public record CollectionChangesCheckerResult<F>(Map<CollectionOperation, Set<CollectionElementDifference<F>>> collectionDifferenceMap,
                                              boolean equalsResult) implements Difference {
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        CollectionChangesCheckerResult that = (CollectionChangesCheckerResult) o;
+        CollectionChangesCheckerResult<?> that = (CollectionChangesCheckerResult<?>) o;
         return equalsResult == that.equalsResult && Objects.equals(collectionDifferenceMap, that.collectionDifferenceMap);
     }
 

@@ -6,8 +6,8 @@ import com.ismolka.validation.utils.change.Difference;
 import java.util.Map;
 import java.util.Set;
 
-public record CollectionDifference(Class<?> collectionGenericClass,
-                                   Map<CollectionOperation, Set<CollectionElementDifference>> collectionDifference) implements Difference {
+public record CollectionDifference<F>(Class<F> collectionGenericClass,
+                                   Map<CollectionOperation, Set<CollectionElementDifference<F>>> collectionDifference) implements Difference {
 
     @Override
     public <T extends Difference> T unwrap(Class<T> type) {

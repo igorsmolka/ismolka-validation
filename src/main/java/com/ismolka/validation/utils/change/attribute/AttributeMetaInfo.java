@@ -27,21 +27,21 @@ public record AttributeMetaInfo(
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         AttributeMetaInfo that = (AttributeMetaInfo) o;
-        return Objects.equals(fieldPath, that.fieldPath) && Objects.equals(equalsFields, that.equalsFields) && Objects.equals(equalsMethodReflectionRef, that.equalsMethodReflectionRef) && Objects.equals(biEqualsMethodCodeRef, that.biEqualsMethodCodeRef);
+        return Objects.equals(fieldPath, that.fieldPath) && Objects.equals(equalsFields, that.equalsFields) && Objects.equals(equalsMethodReflectionRef, that.equalsMethodReflectionRef) && Objects.equals(biEqualsMethodCodeRef, that.biEqualsMethodCodeRef) && Objects.equals(changesChecker, that.changesChecker);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(fieldPath, equalsFields, equalsMethodReflectionRef, biEqualsMethodCodeRef);
+        return Objects.hash(fieldPath, equalsFields, equalsMethodReflectionRef, biEqualsMethodCodeRef, changesChecker);
     }
 
-    public static Builder builder(Class<?> clazz) {
-        return new Builder(clazz);
+    public static Builder builder(Class<?> sourceClass) {
+        return new Builder(sourceClass);
     }
 
     public static class Builder {
 
-        Class<?> clazz;
+        Class<?> sourceClass;
 
         FieldPath fieldPath;
 
@@ -53,12 +53,12 @@ public record AttributeMetaInfo(
 
         ChangesChecker changesChecker;
 
-        public Builder(Class<?> clazz) {
-            this.clazz = clazz;
+        public Builder(Class<?> sourceClass) {
+            this.sourceClass = sourceClass;
         }
 
         public Builder field(String fieldPath) {
-            this.fieldPath = MetaInfoExtractorUtil.extractFieldPathMetaInfo(fieldPath, clazz);
+            this.fieldPath = MetaInfoExtractorUtil.extractFieldPathMetaInfo(fieldPath, sourceClass);
 
             return this;
         }

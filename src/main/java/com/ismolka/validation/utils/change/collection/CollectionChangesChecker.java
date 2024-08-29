@@ -6,5 +6,5 @@ import java.util.Collection;
 
 public interface CollectionChangesChecker<T> extends ChangesChecker<T> {
 
-    CollectionChangesCheckerResult getResult(Collection<T> oldCollection, Collection<T> newCollection);
+    CollectionChangesCheckerResult<T> getResult(Collection<T> oldCollection, Collection<T> newCollection);
 }

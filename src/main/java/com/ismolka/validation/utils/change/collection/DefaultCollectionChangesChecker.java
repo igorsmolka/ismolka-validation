@@ -7,7 +7,6 @@ import com.ismolka.validation.utils.change.attribute.AttributeDifference;
 import com.ismolka.validation.utils.change.attribute.AttributeMetaInfo;
 import com.ismolka.validation.utils.change.attribute.DefaultAttributeChangesChecker;
 import com.ismolka.validation.validator.metainfo.FieldPath;
-import com.ismolka.validation.validator.utils.MetaInfoExtractorUtil;
 import org.antlr.v4.runtime.misc.OrderedHashSet;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ReflectionUtils;
@@ -19,26 +18,30 @@ import java.util.stream.Stream;
 
 public class DefaultCollectionChangesChecker<T> extends DefaultAttributeChangesChecker<T> implements CollectionChangesChecker<T> {
 
-    private Set<CollectionOperation> forOperations;
+    private final Class<T> collectionGenericClass;
+
+    private final Set<CollectionOperation> forOperations;
 
     private Method mainEqualsMethodReflectionRef;
 
-    private BiPredicate mainBiEqualsMethodCodeRef;
+    private BiPredicate<T, T> mainBiEqualsMethodCodeRef;
 
-    private Set<FieldPath> fieldsForMatching;
+    private final Set<FieldPath> fieldsForMatching;
 
-    private Set<FieldPath> mainEqualsFields;
+    private final Set<FieldPath> mainEqualsFields;
 
 
-    public DefaultCollectionChangesChecker() {
+    public DefaultCollectionChangesChecker(Class<T> collectionGenericClass) {
         super();
+        this.collectionGenericClass = collectionGenericClass;
         this.forOperations = new HashSet<>();
         this.fieldsForMatching = new OrderedHashSet<>();
         this.mainEqualsFields = new OrderedHashSet<>();
     }
 
-    public DefaultCollectionChangesChecker(Set<AttributeMetaInfo> attributesToCheck, boolean stopOnFirstDiff, Set<CollectionOperation> forOperations, Method mainEqualsMethodReflectionRef, BiPredicate mainBiEqualsMethodCodeRef, Set<FieldPath> fieldsForMatching, Set<FieldPath> mainEqualsFields) {
+    public DefaultCollectionChangesChecker(Class<T> collectionGenericClass, Set<AttributeMetaInfo> attributesToCheck, boolean stopOnFirstDiff, Set<CollectionOperation> forOperations, Method mainEqualsMethodReflectionRef, BiPredicate<T, T> mainBiEqualsMethodCodeRef, Set<FieldPath> fieldsForMatching, Set<FieldPath> mainEqualsFields) {
         super(attributesToCheck, stopOnFirstDiff);
+        this.collectionGenericClass = collectionGenericClass;
         this.forOperations = forOperations;
         this.mainEqualsMethodReflectionRef = mainEqualsMethodReflectionRef;
         this.mainBiEqualsMethodCodeRef = mainBiEqualsMethodCodeRef;
@@ -46,13 +49,9 @@ public class DefaultCollectionChangesChecker<T> extends DefaultAttributeChangesC
         this.mainEqualsFields = mainEqualsFields;
     }
 
-    public static Builder builder(Class<?> collectionClass) {
-        return new Builder(collectionClass);
-    }
-
     @Override
-    public CollectionChangesCheckerResult getResult(Collection<T> oldCollection, Collection<T> newCollection) {
-        Map<CollectionOperation, Set<CollectionElementDifference>> collectionDifference = new HashMap<>();
+    public CollectionChangesCheckerResult<T> getResult(Collection<T> oldCollection, Collection<T> newCollection) {
+        Map<CollectionOperation, Set<CollectionElementDifference<T>>> collectionDifference = new HashMap<>();
 
         boolean needsStop = false;
 
@@ -66,7 +65,7 @@ public class DefaultCollectionChangesChecker<T> extends DefaultAttributeChangesC
 
             int actualObjIndex = 0;
 
-            for (Object actualObj : oldCollection) {
+            for (T actualObj : oldCollection) {
                 String objectKeyString = getKeyString(actualObj);
 
                 MatchingElement matched = collectionByKeyMap.get(objectKeyString);
@@ -76,7 +75,7 @@ public class DefaultCollectionChangesChecker<T> extends DefaultAttributeChangesC
                             collectionDifference.put(CollectionOperation.REMOVE, new OrderedHashSet<>());
                         }
 
-                        CollectionElementDifference collectionElementDifference = new CollectionElementDifference(null, actualObj, null, actualObjIndex, null);
+                        CollectionElementDifference<T> collectionElementDifference = new CollectionElementDifference<>(null, actualObj, null, actualObjIndex, null);
 
                         collectionDifference.get(CollectionOperation.REMOVE).add(collectionElementDifference);
                         if (stopOnFirstDiff) {
@@ -89,7 +88,7 @@ public class DefaultCollectionChangesChecker<T> extends DefaultAttributeChangesC
 
                     if (forOperations.contains(CollectionOperation.UPDATE)) {
 
-                        CollectionElementDifference collectionElementDifference = checkAndReturnDiff(actualObj, matched.elementValue, actualObjIndex, matched.elementIndex);
+                        CollectionElementDifference<T> collectionElementDifference = checkAndReturnDiff((T) actualObj, (T) matched.elementValue, actualObjIndex, matched.elementIndex);
                         if (collectionElementDifference != null) {
                             if (!collectionDifference.containsKey(CollectionOperation.UPDATE)) {
                                 collectionDifference.put(CollectionOperation.UPDATE, new OrderedHashSet<>());
@@ -115,7 +114,7 @@ public class DefaultCollectionChangesChecker<T> extends DefaultAttributeChangesC
                                 collectionDifference.put(CollectionOperation.ADD, new OrderedHashSet<>());
                             }
 
-                            CollectionElementDifference collectionElementDifference = new CollectionElementDifference(null, null, matchingElement.elementValue, null, matchingElement.elementIndex);
+                            CollectionElementDifference<T> collectionElementDifference = new CollectionElementDifference<>(null, null, (T) matchingElement.elementValue, null, matchingElement.elementIndex);
                             collectionDifference.get(CollectionOperation.ADD).add(collectionElementDifference);
                             if (stopOnFirstDiff) {
                                 needsStop = true;
@@ -126,8 +125,8 @@ public class DefaultCollectionChangesChecker<T> extends DefaultAttributeChangesC
                 }
             }
         } else {
-            List<Object> list = new ArrayList<>(newCollection);
-            List<Object> actualList = new ArrayList<>(oldCollection);
+            List<T> list = new ArrayList<>(newCollection);
+            List<T> actualList = new ArrayList<>(oldCollection);
 
             if (forOperations.contains(CollectionOperation.UPDATE)) {
                 for (int i = 0; i < list.size(); i++) {
@@ -135,10 +134,10 @@ public class DefaultCollectionChangesChecker<T> extends DefaultAttributeChangesC
                         break;
                     }
 
-                    Object obj = list.get(i);
-                    Object actualObj = actualList.get(i);
+                    T obj = list.get(i);
+                    T actualObj = actualList.get(i);
 
-                    CollectionElementDifference collectionElementDifference = checkAndReturnDiff(actualObj, obj, i, i);
+                    CollectionElementDifference<T> collectionElementDifference = checkAndReturnDiff(actualObj,  obj, i, i);
                     if (collectionElementDifference != null) {
                         if (!collectionDifference.containsKey(CollectionOperation.UPDATE)) {
                             collectionDifference.put(CollectionOperation.UPDATE, new OrderedHashSet<>());
@@ -160,7 +159,7 @@ public class DefaultCollectionChangesChecker<T> extends DefaultAttributeChangesC
                             collectionDifference.put(CollectionOperation.ADD, new OrderedHashSet<>());
                         }
 
-                        CollectionElementDifference collectionElementDifference = new CollectionElementDifference(null, null, list.get(i), null, i);
+                        CollectionElementDifference<T> collectionElementDifference = new CollectionElementDifference<T>(null, null, list.get(i), null, i);
                         collectionDifference.get(CollectionOperation.ADD).add(collectionElementDifference);
 
                         if (stopOnFirstDiff) {
@@ -177,7 +176,7 @@ public class DefaultCollectionChangesChecker<T> extends DefaultAttributeChangesC
                         if (!collectionDifference.containsKey(CollectionOperation.REMOVE)) {
                             collectionDifference.put(CollectionOperation.REMOVE, new OrderedHashSet<>());
                         }
-                        CollectionElementDifference collectionElementDifference = new CollectionElementDifference(null, actualList.get(i), null, i, null);
+                        CollectionElementDifference<T> collectionElementDifference = new CollectionElementDifference<T>(null, actualList.get(i), null, i, null);
                         collectionDifference.get(CollectionOperation.REMOVE).add(collectionElementDifference);
 
                         if (stopOnFirstDiff) {
@@ -188,10 +187,10 @@ public class DefaultCollectionChangesChecker<T> extends DefaultAttributeChangesC
             }
         }
 
-        return new CollectionChangesCheckerResult(collectionDifference, collectionDifference.isEmpty());
+        return new CollectionChangesCheckerResult<>(collectionDifference, collectionDifference.isEmpty());
     }
 
-    private CollectionElementDifference checkAndReturnDiff(Object oldElement, Object newElement, Integer oldObjectIndex, Integer newObjectIndex) {
+    private CollectionElementDifference<T> checkAndReturnDiff(T oldElement, T newElement, Integer oldObjectIndex, Integer newObjectIndex) {
         if (oldElement == newElement) {
             return null;
         }
@@ -202,7 +201,7 @@ public class DefaultCollectionChangesChecker<T> extends DefaultAttributeChangesC
 
             Boolean result = (Boolean) ReflectionUtils.invokeMethod(mainEqualsMethodReflectionRef, firstNonNull, argObj);
             if (result != null && result) {
-                return new CollectionElementDifference(null, oldElement, newElement, oldObjectIndex, newObjectIndex);
+                return new CollectionElementDifference<>(null, oldElement, newElement, oldObjectIndex, newObjectIndex);
             }
         }
 
@@ -210,13 +209,14 @@ public class DefaultCollectionChangesChecker<T> extends DefaultAttributeChangesC
             //todo заполнять???
             for (FieldPath equalsField : mainEqualsFields) {
                 Class<?> attributeClass = equalsField.getLast().clazz();
+                Class<?> attributeDeclaringClass = equalsField.getLast().declaringClass();
                 Object oldObjVal = equalsField.getValueFromObject(oldElement);
                 Object newObjVal = equalsField.getValueFromObject(newElement);
 
                 if (!Objects.equals(oldObjVal, newObjVal)) {
                     Map<String, Difference> diffMap = new HashMap<>();
-                    diffMap.put(equalsField.path(), new AttributeDifference(equalsField.path(), attributeClass, oldObjVal, newObjVal));
-                    return new CollectionElementDifference(diffMap, oldElement, newElement, oldObjectIndex, newObjectIndex);
+                    diffMap.put(equalsField.path(), new AttributeDifference(equalsField.path(), collectionGenericClass, attributeDeclaringClass, attributeClass, oldObjVal, newObjVal));
+                    return new CollectionElementDifference<>(diffMap, oldElement, newElement, oldObjectIndex, newObjectIndex);
                 }
             }
         }
@@ -225,20 +225,20 @@ public class DefaultCollectionChangesChecker<T> extends DefaultAttributeChangesC
             boolean isEquals = mainBiEqualsMethodCodeRef.test(oldElement, newElement);
 
             if (!isEquals) {
-                return new CollectionElementDifference(null, oldElement, newElement, oldObjectIndex, newObjectIndex);
+                return new CollectionElementDifference<>(null, oldElement, newElement, oldObjectIndex, newObjectIndex);
             }
         }
 
         if (!CollectionUtils.isEmpty(attributesToCheck)) {
             AttributeChangesCheckerResult resultFromAttributesCheck = getResult((T) oldElement, (T) newElement);
             if (!resultFromAttributesCheck.equalsResult()) {
-                return new CollectionElementDifference(resultFromAttributesCheck.differenceMap(), oldElement, newElement, oldObjectIndex, newObjectIndex);
+                return new CollectionElementDifference<>(resultFromAttributesCheck.differenceMap(), oldElement, newElement, oldObjectIndex, newObjectIndex);
             }
         }
 
         boolean equalsResult = Objects.equals(oldElement, newElement);
         if (!equalsResult) {
-            return new CollectionElementDifference(null, oldElement, newElement, oldObjectIndex, newObjectIndex);
+            return new CollectionElementDifference<>(null, oldElement, newElement, oldObjectIndex, newObjectIndex);
         }
 
         return null;
@@ -288,102 +288,6 @@ public class DefaultCollectionChangesChecker<T> extends DefaultAttributeChangesC
         @Override
         public int hashCode() {
             return Objects.hash(elementValue, matchWasFound, elementIndex);
-        }
-    }
-
-    public static class Builder {
-
-        Class<?> collectionGenericClass;
-
-        Set<AttributeMetaInfo> attributesToCheck;
-        boolean stopOnFirstDiff;
-
-        Set<CollectionOperation> forOperations;
-
-        Method mainEqualsMethodReflectionRef;
-
-        BiPredicate mainBiEqualsMethodCodeRef;
-
-        Set<FieldPath> fieldsForMatching;
-
-        Set<FieldPath> mainEqualsFields;
-
-
-        public Builder(Class<?> collectionGenericClass) {
-            this.collectionGenericClass = collectionGenericClass;
-        }
-
-        public Builder addAttributeToCheck(AttributeMetaInfo attribute) {
-            if (attributesToCheck == null) {
-                attributesToCheck = new OrderedHashSet<>();
-            }
-
-            attributesToCheck.add(attribute);
-
-            return this;
-        }
-
-        public Builder stopOnFirstDiff() {
-            this.stopOnFirstDiff = true;
-
-            return this;
-        }
-
-        public Builder forOperation(CollectionOperation operation) {
-            if (forOperations == null) {
-                forOperations = new HashSet<>();
-            }
-
-            forOperations.add(operation);
-
-            return this;
-        }
-
-        public Builder forOperations(CollectionOperation... operations) {
-            if (forOperations == null) {
-                forOperations = new HashSet<>();
-            }
-
-            forOperations.addAll(Arrays.stream(operations).toList());
-
-            return this;
-        }
-
-        public Builder mainMethodEqualsReflection(Method mainEqualsMethodReflectionRef) {
-            this.mainEqualsMethodReflectionRef = mainEqualsMethodReflectionRef;
-
-            return this;
-        }
-
-
-        public Builder mainBiEqualsMethod(BiPredicate mainBiEqualsMethodCodeRef) {
-            this.mainBiEqualsMethodCodeRef = mainBiEqualsMethodCodeRef;
-
-            return this;
-        }
-
-        public Builder addFieldForMatching(String fieldPathForMatching) {
-            if (fieldsForMatching == null) {
-                fieldsForMatching = new OrderedHashSet<>();
-            }
-
-            FieldPath fieldForMatching = MetaInfoExtractorUtil.extractFieldPathMetaInfo(fieldPathForMatching, collectionGenericClass);
-
-            fieldsForMatching.add(fieldForMatching);
-
-            return this;
-        }
-
-        public Builder addMainEqualsField(String mainEqualsFieldPath) {
-            if (mainEqualsFields == null) {
-                mainEqualsFields = new OrderedHashSet<>();
-            }
-
-            FieldPath fieldForMainEquals = MetaInfoExtractorUtil.extractFieldPathMetaInfo(mainEqualsFieldPath, collectionGenericClass);
-
-            fieldsForMatching.add(fieldForMainEquals);
-
-            return this;
         }
     }
 }
