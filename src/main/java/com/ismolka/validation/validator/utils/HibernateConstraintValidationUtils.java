@@ -1,6 +1,6 @@
 package com.ismolka.validation.validator.utils;
 
-import com.ismolka.validation.validator.metainfo.FieldPath;
+import com.ismolka.validation.utils.metainfo.FieldPath;
 import org.hibernate.validator.constraintvalidation.HibernateConstraintValidatorContext;
 
 import java.util.Set;

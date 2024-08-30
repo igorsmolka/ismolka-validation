@@ -1,8 +1,8 @@
 package com.ismolka.validation.validator;
 
 import com.ismolka.validation.constraints.inner.ConstraintKey;
-import com.ismolka.validation.validator.metainfo.FieldPath;
-import com.ismolka.validation.validator.utils.MetaInfoExtractorUtil;
+import com.ismolka.validation.utils.metainfo.FieldPath;
+import com.ismolka.validation.utils.metainfo.MetaInfoExtractorUtil;
 import jakarta.persistence.criteria.*;
 import jakarta.validation.ConstraintValidator;
 import org.antlr.v4.runtime.misc.OrderedHashSet;
@@ -58,7 +58,7 @@ public abstract class AbstractDbConstraintsValidator<T extends Annotation, A> ex
                 FieldPath path = MetaInfoExtractorUtil.extractFieldPathMetaInfo(validationField, clazz);
 
                 if (path.needsJoin()) {
-                    throw new IllegalArgumentException(String.format("Joins not supported in such validators, fieldPath %s, class %s, validator %s", path.path(), clazz, this.getClass()));
+                    throw new IllegalArgumentException(String.format("Joins not supported in such validators, attribute %s, class %s, validator %s", path.path(), clazz, this.getClass()));
                 }
 
                 fieldsMetaInfoResult.add(MetaInfoExtractorUtil.extractFieldPathMetaInfo(validationField, clazz));

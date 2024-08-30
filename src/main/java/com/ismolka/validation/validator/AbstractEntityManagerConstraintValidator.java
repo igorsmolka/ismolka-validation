@@ -1,7 +1,7 @@
 package com.ismolka.validation.validator;
 
-import com.ismolka.validation.validator.metainfo.FieldMetaInfo;
-import com.ismolka.validation.validator.metainfo.FieldPath;
+import com.ismolka.validation.utils.metainfo.FieldMetaInfo;
+import com.ismolka.validation.utils.metainfo.FieldPath;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.criteria.CriteriaBuilder;

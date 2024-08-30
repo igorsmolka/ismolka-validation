@@ -1,12 +1,20 @@
 package com.ismolka.validation.validator;
 
 import com.ismolka.validation.constraints.CheckExistingByConstraintAndUnmodifiableAttributes;
-import com.ismolka.validation.constraints.constant.CollectionOperation;
+import com.ismolka.validation.utils.change.collection.CollectionChangesChecker;
+import com.ismolka.validation.utils.change.collection.CollectionChangesCheckerResult;
+import com.ismolka.validation.utils.change.collection.CollectionElementDifference;
+import com.ismolka.validation.utils.change.collection.DefaultCollectionChangesCheckerBuilder;
+import com.ismolka.validation.utils.change.value.DefaultValueChangesCheckerBuilder;
+import com.ismolka.validation.utils.change.value.ValueChangesChecker;
+import com.ismolka.validation.utils.change.value.ValueChangesCheckerResult;
+import com.ismolka.validation.utils.change.value.ValueDifference;
+import com.ismolka.validation.utils.constant.CollectionOperation;
 import com.ismolka.validation.constraints.inner.UnmodifiableAttribute;
 import com.ismolka.validation.constraints.inner.UnmodifiableCollection;
-import com.ismolka.validation.validator.metainfo.FieldPath;
+import com.ismolka.validation.utils.metainfo.FieldPath;
 import com.ismolka.validation.validator.utils.HibernateConstraintValidationUtils;
-import com.ismolka.validation.validator.utils.MetaInfoExtractorUtil;
+import com.ismolka.validation.utils.metainfo.MetaInfoExtractorUtil;
 import jakarta.persistence.EntityGraph;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
@@ -126,130 +134,21 @@ public class CheckExistingByConstraintAndUnmodifiableAttributesValidator extends
     protected List<CheckUnmodifiableResult> checkUnmodifiableCollections(Object sourceObject, Object actualSourceObject, CheckExistingMetaInfo checkExistingMetaInfo) {
         List<CheckUnmodifiableResult> checkUnmodifiableResults = new ArrayList<>();
 
-        boolean needsStop = false;
+        for (UnmodifiedCollectionMetaInfo<?> unmodifiedCollectionMetaInfo : checkExistingMetaInfo.unmodifiedCollectionMetaInfo) {
+            CollectionChangesCheckerResult<?> collectionChangesCheckerResult = getCollectionChangesCheckerResultForUnmodifiedCollection(unmodifiedCollectionMetaInfo, sourceObject, actualSourceObject);
+            if (!collectionChangesCheckerResult.equalsResult()) {
+                Map<CollectionOperation, Set<CollectionElementDifference<?>>> collectionDifferenceMap = (Map) collectionChangesCheckerResult.collectionDifferenceMap();
 
-        for (UnmodifiedCollectionMetaInfo unmodifiedCollectionMetaInfo : checkExistingMetaInfo.unmodifiedCollectionMetaInfo) {
-            if (needsStop) {
-                break;
-            }
-
-            Collection<?> collection = (Collection<?>) unmodifiedCollectionMetaInfo.pathToCollection.getValueFromObject(sourceObject);
-            Collection<?> actualCollection = (Collection<?>) unmodifiedCollectionMetaInfo.pathToCollection.getValueFromObject(actualSourceObject);
-
-            if (!unmodifiedCollectionMetaInfo.fieldsForMatching.isEmpty()) {
-
-                Map<String, MatchingElement> collectionByKeyMap;
-                try {
-                    collectionByKeyMap = collection.stream().collect(Collectors.toMap((o) -> getKeyString(o, unmodifiedCollectionMetaInfo), (o) -> new MatchingElement(o, false)));
-                } catch (IllegalStateException illegalStateException) {
-                    throw new RuntimeException("Collection has some duplicates by key fields", illegalStateException);
+                if (collectionDifferenceMap.containsKey(CollectionOperation.ADD)) {
+                    fillCheckUnmodifiableResultListForCollectionOperation(CollectionOperation.ADD, unmodifiedCollectionMetaInfo, collectionDifferenceMap, checkUnmodifiableResults);
                 }
 
-                for (Object actualObj : actualCollection) {
-                    String objectKeyString = getKeyString(actualObj, unmodifiedCollectionMetaInfo);
-
-                    MatchingElement matched = collectionByKeyMap.get(objectKeyString);
-                    if (matched == null) {
-                        if (unmodifiedCollectionMetaInfo.forbiddenOperations.contains(CollectionOperation.REMOVE)) {
-                            checkUnmodifiableResults.add(new CheckUnmodifiableResult(unmodifiedCollectionMetaInfo.pathToCollection,
-                                    null,
-                                    actualObj,
-                                    unmodifiedCollectionMetaInfo.message,
-                                    unmodifiedCollectionMetaInfo.collectionErrorMessageNaming));
-
-                            if (stopUnmodifiableCheckOnFirstMismatch) {
-                                needsStop = true;
-                                break;
-                            }
-                        }
-                    } else {
-                        matched.setMatchWasFound(true);
-
-                        if (unmodifiedCollectionMetaInfo.forbiddenOperations.contains(CollectionOperation.UPDATE)) {
-                            boolean isEquals = unmodifiedCollectionMetaInfo.equalsFields.isEmpty() ? checkObjects(matched.elementValue, actualObj, unmodifiedCollectionMetaInfo.equalsMethod) : checkObjects(matched.elementValue, actualObj, unmodifiedCollectionMetaInfo.equalsFields);
-
-                            if (!isEquals) {
-                                checkUnmodifiableResults.add(new CheckUnmodifiableResult(unmodifiedCollectionMetaInfo.pathToCollection,
-                                        matched.elementValue,
-                                        actualObj,
-                                        unmodifiedCollectionMetaInfo.message,
-                                        unmodifiedCollectionMetaInfo.collectionErrorMessageNaming));
-
-                                if (stopUnmodifiableCheckOnFirstMismatch) {
-                                    needsStop = true;
-                                    break;
-                                }
-                            }
-                        }
-                    }
+                if (collectionDifferenceMap.containsKey(CollectionOperation.REMOVE)) {
+                    fillCheckUnmodifiableResultListForCollectionOperation(CollectionOperation.REMOVE, unmodifiedCollectionMetaInfo, collectionDifferenceMap, checkUnmodifiableResults);
                 }
 
-                if (unmodifiedCollectionMetaInfo.forbiddenOperations.contains(CollectionOperation.ADD)) {
-                    if (!needsStop) {
-                        for (MatchingElement matchingElement : collectionByKeyMap.values()) {
-                            if (!matchingElement.matchWasFound) {
-                                checkUnmodifiableResults.add(new CheckUnmodifiableResult(unmodifiedCollectionMetaInfo.pathToCollection,
-                                        matchingElement.elementValue,
-                                        null,
-                                        unmodifiedCollectionMetaInfo.message,
-                                        unmodifiedCollectionMetaInfo.collectionErrorMessageNaming));
-
-                                if (stopUnmodifiableCheckOnFirstMismatch) {
-                                    needsStop = true;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                }
-            } else {
-                List<Object> list = new ArrayList<>(collection);
-                List<Object> actualList = new ArrayList<>(actualCollection);
-
-                if (unmodifiedCollectionMetaInfo.forbiddenOperations.contains(CollectionOperation.UPDATE)) {
-                    for (int i = 0; i < list.size(); i++) {
-                        if (i >= actualList.size()) {
-                            break;
-                        }
-
-                        Object obj = list.get(i);
-                        Object actualObj = actualList.get(i);
-
-                        boolean isEquals = unmodifiedCollectionMetaInfo.equalsFields.isEmpty() ? checkObjects(obj, actualObj, unmodifiedCollectionMetaInfo.equalsMethod) : checkObjects(obj, actualObj, unmodifiedCollectionMetaInfo.equalsFields);
-
-                        if (!isEquals) {
-                            checkUnmodifiableResults.add(new CheckUnmodifiableResult(unmodifiedCollectionMetaInfo.pathToCollection, obj, actualObj, unmodifiedCollectionMetaInfo.message, unmodifiedCollectionMetaInfo.collectionErrorMessageNaming));
-                            if (this.stopUnmodifiableCheckOnFirstMismatch) {
-                                needsStop = true;
-                                break;
-                            }
-                        }
-                    }
-                }
-
-                if (unmodifiedCollectionMetaInfo.forbiddenOperations.contains(CollectionOperation.ADD)) {
-                    if (!(needsStop) && list.size() > actualList.size()) {
-                        for (int i = actualList.size(); i < list.size(); i++) {
-                            checkUnmodifiableResults.add(new CheckUnmodifiableResult(unmodifiedCollectionMetaInfo.pathToCollection, list.get(i), null, unmodifiedCollectionMetaInfo.message, unmodifiedCollectionMetaInfo.collectionErrorMessageNaming));
-                        }
-
-                        if (this.stopUnmodifiableCheckOnFirstMismatch) {
-                            needsStop = true;
-                        }
-                    }
-                }
-
-
-                if (unmodifiedCollectionMetaInfo.forbiddenOperations.contains(CollectionOperation.REMOVE)) {
-                    if (!(needsStop) && actualList.size() > list.size()) {
-                        for (int i = list.size(); i < actualList.size(); i++) {
-                            checkUnmodifiableResults.add(new CheckUnmodifiableResult(unmodifiedCollectionMetaInfo.pathToCollection, null, actualList.get(i), unmodifiedCollectionMetaInfo.message, unmodifiedCollectionMetaInfo.collectionErrorMessageNaming));
-                        }
-
-                        if (this.stopUnmodifiableCheckOnFirstMismatch) {
-                            needsStop = true;
-                        }
-                    }
+                if (collectionDifferenceMap.containsKey(CollectionOperation.UPDATE)) {
+                    fillCheckUnmodifiableResultListForCollectionOperation(CollectionOperation.UPDATE, unmodifiedCollectionMetaInfo, collectionDifferenceMap, checkUnmodifiableResults);
                 }
             }
         }
@@ -257,32 +156,28 @@ public class CheckExistingByConstraintAndUnmodifiableAttributesValidator extends
         return checkUnmodifiableResults;
     }
 
-    private String getKeyString(Object object, UnmodifiedCollectionMetaInfo unmodifiedCollectionMetaInfo) {
-        if (object == null) {
-            return "null";
+    private void fillCheckUnmodifiableResultListForCollectionOperation(CollectionOperation collectionOperation, UnmodifiedCollectionMetaInfo<?> unmodifiedCollectionMetaInfo, Map<CollectionOperation, Set<CollectionElementDifference<?>>> collectionDifferenceMap, List<CheckUnmodifiableResult> checkUnmodifiableResults) {
+        Set<CollectionElementDifference<?>> addElementDiffs = collectionDifferenceMap.get(collectionOperation);
+        for (CollectionElementDifference<?> collectionElementDiff : addElementDiffs) {
+            checkUnmodifiableResults.add(new CheckUnmodifiableResult(unmodifiedCollectionMetaInfo.pathToCollection, collectionElementDiff.elementFromNewCollection(), collectionElementDiff.elementFromOldCollection(), unmodifiedCollectionMetaInfo.message, unmodifiedCollectionMetaInfo.collectionErrorMessageNaming));
         }
-
-        StringBuilder keyString = new StringBuilder();
-        for (FieldPath fieldPath : unmodifiedCollectionMetaInfo.fieldsForMatching) {
-            Object fieldVal = fieldPath.getValueFromObject(object);
-            keyString.append(fieldVal);
-        }
-
-        return keyString.toString();
     }
 
+    private <X> CollectionChangesCheckerResult<X> getCollectionChangesCheckerResultForUnmodifiedCollection(UnmodifiedCollectionMetaInfo<X> unmodifiedCollectionMetaInfo, Object sourceObject, Object actualSourceObject) {
+        Collection<X> collection = (Collection<X>) unmodifiedCollectionMetaInfo.pathToCollection.getValueFromObject(sourceObject);
+        Collection<X> actualCollection = (Collection<X>) unmodifiedCollectionMetaInfo.pathToCollection.getValueFromObject(actualSourceObject);
+
+        return unmodifiedCollectionMetaInfo.collectionChangesChecker.getResult(actualCollection, collection);
+    }
 
     protected List<CheckUnmodifiableResult> checkUnmodifiableAttributes(Object sourceObject, Object actualSourceObject, CheckExistingMetaInfo checkExistingMetaInfo) {
         List<CheckUnmodifiableResult> checkResult = new ArrayList<>();
 
-        for (UnmodifiedAttributeMetaInfo unmodifiedAttr : checkExistingMetaInfo.unmodifiedAttributeMetaInfo) {
-            Object attrVal = unmodifiedAttr.fieldPath.getValueFromObject(sourceObject);
-            Object oldAttrVal = unmodifiedAttr.fieldPath.getValueFromObject(actualSourceObject);
-
-            boolean isEquals = unmodifiedAttr.equalsFields.isEmpty() ? checkObjects(attrVal, oldAttrVal, unmodifiedAttr.equalsMethod) : checkObjects(attrVal, oldAttrVal, unmodifiedAttr.equalsFields);
-
-            if (!isEquals) {
-                checkResult.add(new CheckUnmodifiableResult(unmodifiedAttr.fieldPath, attrVal, oldAttrVal, unmodifiedAttr.message, unmodifiedAttr.attributeErrorMessageNaming));
+        for (UnmodifiedAttributeMetaInfo<?> unmodifiedAttr : checkExistingMetaInfo.unmodifiedAttributeMetaInfo) {
+            ValueChangesCheckerResult valueChangesCheckerResult = getValueChangesCheckerResultForUnmodifiedAttribute(unmodifiedAttr, sourceObject, actualSourceObject);
+            if (!valueChangesCheckerResult.equalsResult()) {
+                ValueDifference<?> valueDifference = valueChangesCheckerResult.differenceMap().get(null).unwrap(ValueDifference.class);
+                checkResult.add(new CheckUnmodifiableResult(unmodifiedAttr.fieldPath, valueDifference.newValue(), valueDifference.oldValue(), unmodifiedAttr.message, unmodifiedAttr.attributeErrorMessageNaming));
 
                 if (stopUnmodifiableCheckOnFirstMismatch) {
                     break;
@@ -293,31 +188,15 @@ public class CheckExistingByConstraintAndUnmodifiableAttributesValidator extends
         return checkResult;
     }
 
-    private boolean checkObjects(Object firstObject, Object secondObject, Set<FieldPath> equalsFields) {
-        for (FieldPath equalsField : equalsFields) {
-            Object valFromFirst = equalsField.getValueFromObject(firstObject);
-            Object valFromSecond = equalsField.getValueFromObject(secondObject);
+    @SuppressWarnings("uncheked")
+    private <X> ValueChangesCheckerResult getValueChangesCheckerResultForUnmodifiedAttribute(UnmodifiedAttributeMetaInfo<X> unmodifiedAttr, Object sourceObject, Object actualSourceObject) {
+        X attrVal = (X) unmodifiedAttr.fieldPath.getValueFromObject(sourceObject);
+        X actualAttrVal = (X) unmodifiedAttr.fieldPath.getValueFromObject(actualSourceObject);
 
-            if (!Objects.equals(valFromFirst, valFromSecond)) {
-                return false;
-            }
-        }
-
-        return true;
+        return unmodifiedAttr.valueChangesChecker.getResult(actualAttrVal, attrVal);
     }
 
-    private boolean checkObjects(Object firstObject, Object secondObject, Method equalsMethod) {
-        if (firstObject == secondObject) {
-            return true;
-        }
 
-        if (secondObject != null) {
-            Boolean result = (Boolean) ReflectionUtils.invokeMethod(equalsMethod, secondObject, firstObject);
-            return result != null && result;
-        }
-
-        return false;
-    }
 
     protected void fillContextValidatorForCheckUnmodifiableResult(ConstraintValidatorContext context, List<CheckUnmodifiableResult> checkUnmodifiableResults) {
         HibernateConstraintValidatorContext constraintValidatorContext = context.unwrap(HibernateConstraintValidatorContext.class);
@@ -357,8 +236,8 @@ public class CheckExistingByConstraintAndUnmodifiableAttributesValidator extends
     @Override
     protected void extractAndCashMetaDataForClass(Class<?> clazz) {
         Set<FieldPath> fieldsMetaInfoResult = extractExistingConstraintInfo(clazz);
-        Set<UnmodifiedAttributeMetaInfo> unmodifiedAttributeMetaInfos = extractUnmodifiedAttributeMetaInfo(clazz);
-        Set<UnmodifiedCollectionMetaInfo> unmodifiedCollectionMetaInfos = extractUnmodifiedCollectionMetaInfo(clazz);
+        Set<UnmodifiedAttributeMetaInfo<?>> unmodifiedAttributeMetaInfos = extractUnmodifiedAttributeMetaInfo(clazz);
+        Set<UnmodifiedCollectionMetaInfo<?>> unmodifiedCollectionMetaInfos = extractUnmodifiedCollectionMetaInfo(clazz);
 
         if (!(loadByConstraint) && (unmodifiableAttributes.length > 0 || unmodifiableCollections.length > 0)) {
             throw new IllegalArgumentException("Loading is necessary for unmodifiable check");
@@ -367,71 +246,76 @@ public class CheckExistingByConstraintAndUnmodifiableAttributesValidator extends
         META_INFO.put(clazz, new CheckExistingMetaInfo(fieldsMetaInfoResult, unmodifiedAttributeMetaInfos, unmodifiedCollectionMetaInfos));
     }
 
-    private Set<UnmodifiedCollectionMetaInfo> extractUnmodifiedCollectionMetaInfo(Class<?> clazz) {
-        Set<UnmodifiedCollectionMetaInfo> unmodifiedCollections = new OrderedHashSet<>();
+    private Set<UnmodifiedCollectionMetaInfo<?>> extractUnmodifiedCollectionMetaInfo(Class<?> clazz) {
+        Set<UnmodifiedCollectionMetaInfo<?>> unmodifiedCollections = new OrderedHashSet<>();
 
         for (UnmodifiableCollection unmodifiableCollection : unmodifiableCollections) {
             FieldPath collection = MetaInfoExtractorUtil.extractFieldPathMetaInfo(unmodifiableCollection.value(), clazz);
-            Class<?> attributeClass = collection.getLast().clazz();
 
-            if (!Collection.class.isAssignableFrom(attributeClass)) {
-                throw new IllegalArgumentException("Class of field is not Collection");
-            }
-
-            Set<FieldPath> equalsFields = new OrderedHashSet<>();
-
-            Arrays.stream(unmodifiableCollection.equalsFields()).forEach(equalsField -> equalsFields.add(MetaInfoExtractorUtil.extractFieldPathMetaInfo(equalsField, unmodifiableCollection.collectionGenericClass())));
-
-            Method equalsMethod = getEqualsMethod(unmodifiableCollection.collectionGenericClass(), unmodifiableCollection.equalsMethodName());
-
-            if (equalsMethod == null) {
-                throw new IllegalArgumentException("Equals method doesn't exist");
-            }
-
-            if (!equalsMethod.getReturnType().equals(boolean.class) && !equalsMethod.getReturnType().equals(Boolean.class)) {
-                throw new IllegalArgumentException("Equals method must return boolean");
-            }
-
-            Set<FieldPath> fieldsForMatching = MetaInfoExtractorUtil.extractFieldPathsMetaInfo(unmodifiableCollection.fieldsForMatching(), unmodifiableCollection.collectionGenericClass());
-
-            unmodifiedCollections.add(new UnmodifiedCollectionMetaInfo(collection,
-                    equalsMethod,
-                    fieldsForMatching,
-                    unmodifiableCollection.collectionGenericClass(),
-                    unmodifiableCollection.message(),
-                    unmodifiableCollection.collectionErrorMessageNaming(),
-                    equalsFields,
-                    Set.of(unmodifiableCollection.forbiddenOperations())));
+            unmodifiedCollections.add(createUnmodifiedCollectionMetaInfo(unmodifiableCollection.collectionGenericClass(), collection, unmodifiableCollection));
         }
 
         return unmodifiedCollections;
     }
 
-    private Set<UnmodifiedAttributeMetaInfo> extractUnmodifiedAttributeMetaInfo(Class<?> clazz) {
-        Set<UnmodifiedAttributeMetaInfo> result = new OrderedHashSet<>();
+    private <X> UnmodifiedCollectionMetaInfo<X> createUnmodifiedCollectionMetaInfo(Class<X> collectionClass, FieldPath collection, UnmodifiableCollection unmodifiableCollection) {
+        Class<?> attributeClass = collection.getLast().clazz();
+
+        if (!Collection.class.isAssignableFrom(attributeClass)) {
+            throw new IllegalArgumentException(String.format("Class of field %s is not Collection", unmodifiableCollection.value()));
+        }
+
+        DefaultCollectionChangesCheckerBuilder<X> collectionChangesCheckerBuilder = DefaultCollectionChangesCheckerBuilder.builder(collectionClass);
+
+        Arrays.stream(unmodifiableCollection.equalsFields()).forEach(collectionChangesCheckerBuilder::addGlobalEqualsField);
+
+        if (!unmodifiableCollection.equalsMethodName().isBlank()) {
+            collectionChangesCheckerBuilder.globalEqualsMethodReflection(getEqualsMethod(attributeClass, unmodifiableCollection.equalsMethodName()));
+        }
+
+        Arrays.stream(unmodifiableCollection.fieldsForMatching()).forEach(collectionChangesCheckerBuilder::addFieldForMatching);
+
+        if (stopUnmodifiableCheckOnFirstMismatch) {
+            collectionChangesCheckerBuilder.stopOnFirstDiff();
+        }
+
+        collectionChangesCheckerBuilder.forOperations(unmodifiableCollection.forbiddenOperations());
+
+        return new UnmodifiedCollectionMetaInfo<>(collection,
+                collectionClass,
+                unmodifiableCollection.message(),
+                unmodifiableCollection.collectionErrorMessageNaming(),
+                Set.of(unmodifiableCollection.forbiddenOperations()),
+                collectionChangesCheckerBuilder.build());
+    }
+
+
+    private Set<UnmodifiedAttributeMetaInfo<?>> extractUnmodifiedAttributeMetaInfo(Class<?> clazz) {
+        Set<UnmodifiedAttributeMetaInfo<?>> result = new OrderedHashSet<>();
 
         for (UnmodifiableAttribute unmodifiableAttribute : unmodifiableAttributes) {
             FieldPath attributePath = MetaInfoExtractorUtil.extractFieldPathMetaInfo(unmodifiableAttribute.value(), clazz);
             Class<?> attributeClass = attributePath.getLast().clazz();
 
-            Set<FieldPath> equalsFields = new OrderedHashSet<>();
-
-            Arrays.stream(unmodifiableAttribute.equalsFields()).forEach(equalsField -> equalsFields.add(MetaInfoExtractorUtil.extractFieldPathMetaInfo(equalsField, attributeClass)));
-
-            Method equalsMethod = getEqualsMethod(attributeClass, unmodifiableAttribute.equalsMethodName());
-
-            if (equalsMethod == null) {
-                throw new IllegalArgumentException("Equals method doesn't exist");
-            }
-
-            if (!equalsMethod.getReturnType().equals(boolean.class) && !equalsMethod.getReturnType().equals(Boolean.class)) {
-                throw new IllegalArgumentException("Equals method must return boolean");
-            }
-
-            result.add(new UnmodifiedAttributeMetaInfo(attributePath, equalsMethod, unmodifiableAttribute.message(), unmodifiableAttribute.attributeErrorMessageNaming(), equalsFields));
+            result.add(createUnmodifiedAttributeMetaInfo(attributeClass, attributePath, unmodifiableAttribute));
         }
 
         return result;
+    }
+
+    private <X> UnmodifiedAttributeMetaInfo<X> createUnmodifiedAttributeMetaInfo(Class<X> attributeClass, FieldPath attributePath, UnmodifiableAttribute unmodifiableAttribute) {
+        DefaultValueChangesCheckerBuilder<X> valueChangesCheckerBuilder = DefaultValueChangesCheckerBuilder.builder(attributeClass);
+        Arrays.stream(unmodifiableAttribute.equalsFields()).forEach(valueChangesCheckerBuilder::addGlobalEqualsField);
+
+        if (!unmodifiableAttribute.equalsMethodName().isBlank()) {
+            valueChangesCheckerBuilder.globalEqualsMethodReflection(getEqualsMethod(attributeClass, unmodifiableAttribute.equalsMethodName()));
+        }
+
+        if (stopUnmodifiableCheckOnFirstMismatch) {
+            valueChangesCheckerBuilder.stopOnFirstDiff();
+        }
+
+        return new UnmodifiedAttributeMetaInfo<>(attributeClass, attributePath, unmodifiableAttribute.message(), unmodifiableAttribute.attributeErrorMessageNaming(), valueChangesCheckerBuilder.build());
     }
 
     private Method getEqualsMethod(Class<?> clazz, String methodName) {
@@ -453,37 +337,6 @@ public class CheckExistingByConstraintAndUnmodifiableAttributesValidator extends
         }
 
         return fieldsMetaInfoResult;
-    }
-
-
-
-    private static class MatchingElement {
-        private final Object elementValue;
-
-        private boolean matchWasFound;
-
-
-        public MatchingElement(Object elementValue, boolean matchWasFound) {
-            this.elementValue = elementValue;
-            this.matchWasFound = matchWasFound;
-        }
-
-        public void setMatchWasFound(boolean matchWasFound) {
-            this.matchWasFound = matchWasFound;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            MatchingElement that = (MatchingElement) o;
-            return matchWasFound == that.matchWasFound && Objects.equals(elementValue, that.elementValue);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(elementValue, matchWasFound);
-        }
     }
 
 
@@ -513,8 +366,8 @@ public class CheckExistingByConstraintAndUnmodifiableAttributesValidator extends
 
     private record CheckExistingMetaInfo(
             Set<FieldPath> existingConstraint,
-            Set<UnmodifiedAttributeMetaInfo> unmodifiedAttributeMetaInfo,
-            Set<UnmodifiedCollectionMetaInfo> unmodifiedCollectionMetaInfo
+            Set<UnmodifiedAttributeMetaInfo<?>> unmodifiedAttributeMetaInfo,
+            Set<UnmodifiedCollectionMetaInfo<?>> unmodifiedCollectionMetaInfo
     ) {
 
         @Override
@@ -531,58 +384,58 @@ public class CheckExistingByConstraintAndUnmodifiableAttributesValidator extends
         }
     }
 
-    private record UnmodifiedCollectionMetaInfo(
+    private record UnmodifiedCollectionMetaInfo<X>(
         FieldPath pathToCollection,
-        Method equalsMethod,
-        Set<FieldPath> fieldsForMatching,
 
-        Class<?> collectionGenericClass,
+        Class<X> collectionGenericClass,
 
         String message,
 
         String collectionErrorMessageNaming,
 
-        Set<FieldPath> equalsFields,
+        Set<CollectionOperation> forbiddenOperations,
 
-        Set<CollectionOperation> forbiddenOperations
+        CollectionChangesChecker<X> collectionChangesChecker
     ) {
 
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
-            UnmodifiedCollectionMetaInfo that = (UnmodifiedCollectionMetaInfo) o;
-            return Objects.equals(pathToCollection, that.pathToCollection) && Objects.equals(equalsMethod, that.equalsMethod) && Objects.equals(fieldsForMatching, that.fieldsForMatching);
+            UnmodifiedCollectionMetaInfo<?> that = (UnmodifiedCollectionMetaInfo<?>) o;
+            return Objects.equals(pathToCollection, that.pathToCollection);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(pathToCollection, equalsMethod, fieldsForMatching);
+            return Objects.hash(pathToCollection);
         }
     }
 
-    private record UnmodifiedAttributeMetaInfo(
+    private record UnmodifiedAttributeMetaInfo<X>(
+
+        Class<X> attributeClass,
+
         FieldPath fieldPath,
-        Method equalsMethod,
 
         String message,
 
         String attributeErrorMessageNaming,
 
-        Set<FieldPath> equalsFields
+        ValueChangesChecker<X> valueChangesChecker
         ) {
 
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
-            UnmodifiedAttributeMetaInfo that = (UnmodifiedAttributeMetaInfo) o;
-            return Objects.equals(fieldPath, that.fieldPath) && Objects.equals(equalsMethod, that.equalsMethod);
+            UnmodifiedAttributeMetaInfo<?> that = (UnmodifiedAttributeMetaInfo<?>) o;
+            return Objects.equals(fieldPath, that.fieldPath);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(fieldPath, equalsMethod);
+            return Objects.hash(fieldPath);
         }
     }
 }

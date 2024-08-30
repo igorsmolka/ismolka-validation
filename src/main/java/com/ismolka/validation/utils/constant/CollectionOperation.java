@@ -1,4 +1,4 @@
-package com.ismolka.validation.constraints.constant;
+package com.ismolka.validation.utils.constant;
 
 public enum CollectionOperation {
 

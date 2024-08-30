@@ -10,7 +10,7 @@ import java.lang.annotation.Target;
 public @interface UnmodifiableAttribute {
     String value();
 
-    String equalsMethodName() default "equals";
+    String equalsMethodName() default "";
 
     String message() default "{com.ismolka.validation.constraints.inner.UnmodifiableAttribute.message}";
 

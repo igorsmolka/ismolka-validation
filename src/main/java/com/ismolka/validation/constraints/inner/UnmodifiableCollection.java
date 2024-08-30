@@ -1,6 +1,6 @@
 package com.ismolka.validation.constraints.inner;
 
-import com.ismolka.validation.constraints.constant.CollectionOperation;
+import com.ismolka.validation.utils.constant.CollectionOperation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -13,7 +13,7 @@ public @interface UnmodifiableCollection {
 
     String value();
 
-    String equalsMethodName() default "equals";
+    String equalsMethodName() default "";
 
     Class<?> collectionGenericClass() default Object.class;
 

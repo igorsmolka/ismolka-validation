@@ -1,4 +1,4 @@
-package com.ismolka.validation.validator.metainfo;
+package com.ismolka.validation.utils.metainfo;
 
 import org.springframework.util.ReflectionUtils;
 
@@ -19,10 +19,16 @@ public record FieldMetaInfo(String name,
 ) {
 
     public Object getValueFromObject(Object obj) {
+        if (obj == null) {
+            return null;
+        }
+
         if (readMethod != null) {
+            ReflectionUtils.makeAccessible(readMethod);
             return ReflectionUtils.invokeMethod(readMethod, obj);
         }
 
+        ReflectionUtils.makeAccessible(field);
         return ReflectionUtils.getField(field, obj);
     }
 
