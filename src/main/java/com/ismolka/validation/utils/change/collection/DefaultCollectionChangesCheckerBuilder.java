@@ -120,7 +120,7 @@ public class DefaultCollectionChangesCheckerBuilder<T> {
 
         Set<FieldPath> fieldsForMatchingAsFieldPaths = !CollectionUtils.isEmpty(fieldsForMatching) ? MetaInfoExtractorUtil.extractFieldPathsMetaInfo(fieldsForMatching.toArray(String[]::new), collectionGenericClass) : new OrderedHashSet<>();
 
-        return new DefaultCollectionChangesChecker<>(attributesCheckDescriptors, stopOnFirstDiff, globalEqualsMethodReflectionRef, globalBiEqualsMethodCodeRef, globalEqualsFieldsAsFieldPaths, forOperations, fieldsForMatchingAsFieldPaths);
+        return new DefaultCollectionChangesChecker<>(collectionGenericClass, attributesCheckDescriptors, stopOnFirstDiff, globalEqualsMethodReflectionRef, globalBiEqualsMethodCodeRef, globalEqualsFieldsAsFieldPaths, forOperations, fieldsForMatchingAsFieldPaths);
     }
 
     private void validate() {

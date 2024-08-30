@@ -14,19 +14,30 @@ import java.util.function.BiPredicate;
 
 public class DefaultCollectionChangesChecker<T> extends DefaultValueChangesChecker<T> implements CollectionChangesChecker<T> {
 
+    private final Class<T> collectionGenericClass;
+
     private final Set<CollectionOperation> forOperations;
 
     private final Set<FieldPath> fieldsForMatching;
 
 
-    protected DefaultCollectionChangesChecker(Set<ValueCheckDescriptor<?>> attributesCheckDescriptors, boolean stopOnFirstDiff, Method globalEqualsMethodReflectionRef, BiPredicate<T, T> globalBiEqualsMethodCodeRef, Set<FieldPath> globalEqualsFields, Set<CollectionOperation> forOperations, Set<FieldPath> fieldsForMatching) {
+    protected DefaultCollectionChangesChecker(Class<T> collectionGenericClass, Set<ValueCheckDescriptor<?>> attributesCheckDescriptors, boolean stopOnFirstDiff, Method globalEqualsMethodReflectionRef, BiPredicate<T, T> globalBiEqualsMethodCodeRef, Set<FieldPath> globalEqualsFields, Set<CollectionOperation> forOperations, Set<FieldPath> fieldsForMatching) {
         super(attributesCheckDescriptors, stopOnFirstDiff, globalEqualsMethodReflectionRef, globalBiEqualsMethodCodeRef, globalEqualsFields);
+        this.collectionGenericClass = collectionGenericClass;
         this.forOperations = forOperations;
         this.fieldsForMatching = fieldsForMatching;
     }
 
     @Override
     public CollectionChangesCheckerResult<T> getResult(Collection<T> oldCollection, Collection<T> newCollection) {
+        if (oldCollection == newCollection) {
+            return new CollectionChangesCheckerResult<>(collectionGenericClass, null, true);
+        }
+
+        if (oldCollection == null || newCollection == null) {
+            return returnResultWhenOneIsNull(oldCollection, newCollection);
+        }
+
         Map<CollectionOperation, Set<CollectionElementDifference<T>>> collectionDifference = new HashMap<>();
 
         boolean needsStop = false;
@@ -162,7 +173,31 @@ public class DefaultCollectionChangesChecker<T> extends DefaultValueChangesCheck
             }
         }
 
-        return new CollectionChangesCheckerResult<>(collectionDifference, collectionDifference.isEmpty());
+        return new CollectionChangesCheckerResult<>(collectionGenericClass, collectionDifference, collectionDifference.isEmpty());
+    }
+
+    private CollectionChangesCheckerResult<T> returnResultWhenOneIsNull(Collection<T> oldCollection, Collection<T> newCollection) {
+        Set<CollectionElementDifference<T>> collectionDifference = new OrderedHashSet<>();
+
+        if (oldCollection == null) {
+            int index = 0;
+            for (T newObject : newCollection) {
+                collectionDifference.add(new CollectionElementDifference<>(null, null, newObject, null, index));
+                index++;
+            }
+        }
+
+        if (newCollection == null) {
+            int index = 0;
+            for (T oldObject : oldCollection) {
+                collectionDifference.add(new CollectionElementDifference<>(null, oldObject, null, index, null));
+                index++;
+            }
+        }
+
+        CollectionOperation operation = oldCollection == null ? CollectionOperation.ADD : CollectionOperation.REMOVE;
+
+        return new CollectionChangesCheckerResult<>(collectionGenericClass, Map.of(operation, collectionDifference), false);
     }
 
     private CollectionElementDifference<T> checkAndReturnDiff(T oldElement, T newElement, Integer oldObjectIndex, Integer newObjectIndex) {

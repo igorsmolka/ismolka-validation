@@ -7,8 +7,10 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-public record CollectionChangesCheckerResult<F>(Map<CollectionOperation, Set<CollectionElementDifference<F>>> collectionDifferenceMap,
-                                             boolean equalsResult) implements Difference {
+public record CollectionChangesCheckerResult<F>(
+        Class<F> collectionClass,
+        Map<CollectionOperation, Set<CollectionElementDifference<F>>> collectionDifferenceMap,
+        boolean equalsResult) implements Difference {
 
     @Override
     public boolean equals(Object o) {
