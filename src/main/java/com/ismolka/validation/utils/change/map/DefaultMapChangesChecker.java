@@ -47,18 +47,18 @@ public class DefaultMapChangesChecker<K, V> extends DefaultValueChangesChecker<V
 
         Map<MapOperation, Set<MapElementDifference<K, V>>> mapDifference = new HashMap<>();
 
-        if (forOperations.contains(MapOperation.DELETE) || forOperations.contains(MapOperation.UPDATE)) {
+        if (forOperations.contains(MapOperation.REMOVE) || forOperations.contains(MapOperation.UPDATE)) {
             for (Map.Entry<K, V> keyValueEntry : oldMap.entrySet()) {
                 V newValue = newMap.get(keyValueEntry.getKey());
                 V oldValue = keyValueEntry.getValue();
 
                 if (newValue == null) {
-                    if (forOperations.contains(MapOperation.DELETE)) {
-                        if (!mapDifference.containsKey(MapOperation.DELETE)) {
-                            mapDifference.put(MapOperation.DELETE, new OrderedHashSet<>());
+                    if (forOperations.contains(MapOperation.REMOVE)) {
+                        if (!mapDifference.containsKey(MapOperation.REMOVE)) {
+                            mapDifference.put(MapOperation.REMOVE, new OrderedHashSet<>());
                         }
 
-                        mapDifference.get(MapOperation.DELETE).add(new MapElementDifference<>(null, oldValue, null, keyValueEntry.getKey()));
+                        mapDifference.get(MapOperation.REMOVE).add(new MapElementDifference<>(null, oldValue, null, keyValueEntry.getKey()));
                         if (stopOnFirstDiff) {
                             break;
                         }
@@ -111,7 +111,7 @@ public class DefaultMapChangesChecker<K, V> extends DefaultValueChangesChecker<V
             oldMap.forEach((key, value) -> mapDifference.add(new MapElementDifference<>(null, value, null, key)));
         }
 
-        MapOperation operation = oldMap == null ? MapOperation.PUT : MapOperation.DELETE;
+        MapOperation operation = oldMap == null ? MapOperation.PUT : MapOperation.REMOVE;
 
         return new MapChangesCheckerResult<>(keyClass, valueClass, Map.of(operation, mapDifference), false);
     }

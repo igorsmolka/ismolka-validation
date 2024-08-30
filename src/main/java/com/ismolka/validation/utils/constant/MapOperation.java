@@ -4,7 +4,7 @@ public enum MapOperation {
 
     PUT,
 
-    DELETE,
+    REMOVE,
 
     UPDATE
 }
