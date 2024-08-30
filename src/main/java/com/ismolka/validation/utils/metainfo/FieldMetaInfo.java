@@ -24,9 +24,11 @@ public record FieldMetaInfo(String name,
         }
 
         if (readMethod != null) {
+            ReflectionUtils.makeAccessible(readMethod);
             return ReflectionUtils.invokeMethod(readMethod, obj);
         }
 
+        ReflectionUtils.makeAccessible(field);
         return ReflectionUtils.getField(field, obj);
     }
 

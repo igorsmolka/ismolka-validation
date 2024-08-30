@@ -7,7 +7,7 @@ import java.util.Objects;
 public record ValueDifference<F>(String valueFieldPath,
                                     Class<?> valueFieldRootClass,
 
-                                    Class<?> valueFieldSourceClass,
+                                    Class<?> valueFieldDeclaringClass,
                                     Class<F> valueClass,
                                     F oldValue,
                                     F newValue) implements Difference {

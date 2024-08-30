@@ -3,7 +3,7 @@ package com.ismolka.validation.utils.change.value;
 import com.ismolka.validation.utils.change.ChangesChecker;
 import com.ismolka.validation.utils.metainfo.FieldPath;
 import com.ismolka.validation.utils.metainfo.MetaInfoExtractorUtil;
-import com.ismolka.validation.utils.reflection.ReflectionMethodUtil;
+import com.ismolka.validation.utils.reflection.ReflectUtil;
 import org.antlr.v4.runtime.misc.OrderedHashSet;
 import org.springframework.util.CollectionUtils;
 
@@ -11,9 +11,11 @@ import java.lang.reflect.Method;
 import java.util.Set;
 import java.util.function.BiPredicate;
 
-public class ValueCheckDescriptorBuilder {
+public class ValueCheckDescriptorBuilder<Q> {
 
     Class<?> sourceClass;
+
+    Class<Q> targetClass;
 
     String attributePath;
 
@@ -21,25 +23,26 @@ public class ValueCheckDescriptorBuilder {
 
     Method equalsMethodReflectionRef;
 
-    BiPredicate biEqualsMethodCodeRef;
+    BiPredicate<Q, Q> biEqualsMethodCodeRef;
 
-    ChangesChecker changesChecker;
+    ChangesChecker<Q> changesChecker;
 
-    public static ValueCheckDescriptorBuilder builder(Class<?> sourceClass) {
-        return new ValueCheckDescriptorBuilder(sourceClass);
+    public static <X> ValueCheckDescriptorBuilder<X> builder(Class<?> sourceClass, Class<X> targetClass) {
+        return new ValueCheckDescriptorBuilder<>(sourceClass, targetClass);
     }
 
-    public ValueCheckDescriptorBuilder(Class<?> sourceClass) {
+    public ValueCheckDescriptorBuilder(Class<?> sourceClass, Class<Q> targetClass) {
         this.sourceClass = sourceClass;
+        this.targetClass = targetClass;
     }
 
-    public ValueCheckDescriptorBuilder attribute(String fieldPath) {
+    public ValueCheckDescriptorBuilder<Q> attribute(String fieldPath) {
         this.attributePath = fieldPath;
 
         return this;
     }
 
-    public ValueCheckDescriptorBuilder addFieldForEquals(String fieldForEqualsPath) {
+    public ValueCheckDescriptorBuilder<Q> addFieldForEquals(String fieldForEqualsPath) {
         if (equalsFields == null) {
             equalsFields = new OrderedHashSet<>();
         }
@@ -49,32 +52,32 @@ public class ValueCheckDescriptorBuilder {
         return this;
     }
 
-    public ValueCheckDescriptorBuilder equalsReflectionMethod(Method equalsMethod) {
+    public ValueCheckDescriptorBuilder<Q> equalsReflectionMethod(Method equalsMethod) {
         this.equalsMethodReflectionRef = equalsMethod;
 
         return this;
     }
 
-    public ValueCheckDescriptorBuilder biEqualsMethod(BiPredicate biEqualsMethod) {
+    public ValueCheckDescriptorBuilder<Q> biEqualsMethod(BiPredicate<Q, Q> biEqualsMethod) {
         this.biEqualsMethodCodeRef = biEqualsMethod;
 
         return this;
     }
 
-    public ValueCheckDescriptorBuilder changesChecker(ChangesChecker changesChecker) {
+    public ValueCheckDescriptorBuilder<Q> changesChecker(ChangesChecker<Q> changesChecker) {
         this.changesChecker = changesChecker;
 
         return this;
     }
 
-    public ValueCheckDescriptor build() {
+    public ValueCheckDescriptor<Q> build() {
         validate();
 
         FieldPath attributeAsFieldPath = MetaInfoExtractorUtil.extractFieldPathMetaInfo(attributePath, sourceClass);
 
         Set<FieldPath> equalsFieldsAsFieldPaths = !CollectionUtils.isEmpty(equalsFields) ? MetaInfoExtractorUtil.extractFieldPathsMetaInfo(equalsFields.toArray(String[]::new), attributeAsFieldPath.getLast().clazz()) : new OrderedHashSet<>();
 
-        return new ValueCheckDescriptor(attributeAsFieldPath, equalsFieldsAsFieldPaths, equalsMethodReflectionRef, biEqualsMethodCodeRef, changesChecker);
+        return new ValueCheckDescriptor<>(attributeAsFieldPath, equalsFieldsAsFieldPaths, equalsMethodReflectionRef, biEqualsMethodCodeRef, changesChecker);
     }
 
     private void validate() {
@@ -96,8 +99,16 @@ public class ValueCheckDescriptorBuilder {
             throw new RuntimeException("Should be only one kind of defining global equals method for check description");
         }
 
-        if (equalsMethodReflectionRef != null && ReflectionMethodUtil.methodIsNotPresent(equalsMethodReflectionRef, sourceClass)) {
+        if (equalsMethodReflectionRef != null && ReflectUtil.methodIsNotPresent(equalsMethodReflectionRef, sourceClass)) {
             throw new RuntimeException(String.format("Source class %s doesnt declare the method %s", sourceClass, equalsMethodReflectionRef));
+        }
+
+        if (equalsFields != null) {
+            equalsFields.forEach(equalsField -> {
+                if (ReflectUtil.fieldPathIsNotPresent(equalsField, targetClass)) {
+                    throw new RuntimeException(String.format("Equals field %s is not present in class %s", equalsField, targetClass));
+                }
+            });
         }
     }
 }

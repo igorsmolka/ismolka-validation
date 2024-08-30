@@ -2,7 +2,7 @@ package com.ismolka.validation.utils.change.value;
 
 import com.ismolka.validation.utils.metainfo.FieldPath;
 import com.ismolka.validation.utils.metainfo.MetaInfoExtractorUtil;
-import com.ismolka.validation.utils.reflection.ReflectionMethodUtil;
+import com.ismolka.validation.utils.reflection.ReflectUtil;
 import org.antlr.v4.runtime.misc.OrderedHashSet;
 import org.springframework.util.CollectionUtils;
 
@@ -14,7 +14,7 @@ public class DefaultValueChangesCheckerBuilder<T> {
 
     Class<T> targetClass;
 
-    Set<ValueCheckDescriptor> attributesCheckDescriptors;
+    Set<ValueCheckDescriptor<?>> attributesCheckDescriptors;
 
     boolean stopOnFirstDiff;
 
@@ -32,7 +32,7 @@ public class DefaultValueChangesCheckerBuilder<T> {
         this.targetClass = targetClass;
     }
 
-    public DefaultValueChangesCheckerBuilder<T> addAttributeToCheck(ValueCheckDescriptor attribute) {
+    public DefaultValueChangesCheckerBuilder<T> addAttributeToCheck(ValueCheckDescriptor<?> attribute) {
         if (attributesCheckDescriptors == null) {
             attributesCheckDescriptors = new OrderedHashSet<>();
         }
@@ -93,8 +93,16 @@ public class DefaultValueChangesCheckerBuilder<T> {
             throw new RuntimeException("Should be only one kind of defining global equals method for value check");
         }
 
-        if (globalEqualsMethodReflectionRef != null && ReflectionMethodUtil.methodIsNotPresent(globalEqualsMethodReflectionRef, targetClass)) {
+        if (globalEqualsMethodReflectionRef != null && ReflectUtil.methodIsNotPresent(globalEqualsMethodReflectionRef, targetClass)) {
             throw new RuntimeException(String.format("Target class %s doesnt declare the method %s", targetClass, globalEqualsMethodReflectionRef));
+        }
+
+        if (globalEqualsFields != null) {
+            globalEqualsFields.forEach(equalsField -> {
+                if (ReflectUtil.fieldPathIsNotPresent(equalsField, targetClass)) {
+                    throw new RuntimeException(String.format("Equals field %s is not present in class %s", equalsField, targetClass));
+                }
+            });
         }
     }
 }

@@ -4,7 +4,7 @@ import com.ismolka.validation.utils.constant.CollectionOperation;
 import com.ismolka.validation.utils.change.value.ValueCheckDescriptor;
 import com.ismolka.validation.utils.metainfo.FieldPath;
 import com.ismolka.validation.utils.metainfo.MetaInfoExtractorUtil;
-import com.ismolka.validation.utils.reflection.ReflectionMethodUtil;
+import com.ismolka.validation.utils.reflection.ReflectUtil;
 import org.antlr.v4.runtime.misc.OrderedHashSet;
 import org.springframework.util.CollectionUtils;
 
@@ -18,7 +18,7 @@ public class DefaultCollectionChangesCheckerBuilder<T> {
 
     Class<T> collectionGenericClass;
 
-    Set<ValueCheckDescriptor> attributesCheckDescriptors;
+    Set<ValueCheckDescriptor<?>> attributesCheckDescriptors;
 
     boolean stopOnFirstDiff;
 
@@ -41,7 +41,7 @@ public class DefaultCollectionChangesCheckerBuilder<T> {
         this.collectionGenericClass = collectionGenericClass;
     }
 
-    public DefaultCollectionChangesCheckerBuilder<T> addAttributeToCheck(ValueCheckDescriptor attribute) {
+    public DefaultCollectionChangesCheckerBuilder<T> addAttributeToCheck(ValueCheckDescriptor<?> attribute) {
         if (attributesCheckDescriptors == null) {
             attributesCheckDescriptors = new OrderedHashSet<>();
         }
@@ -138,8 +138,16 @@ public class DefaultCollectionChangesCheckerBuilder<T> {
             throw new RuntimeException("Should be only one kind of defining global equals method for collection check");
         }
 
-        if (globalEqualsMethodReflectionRef != null && ReflectionMethodUtil.methodIsNotPresent(globalEqualsMethodReflectionRef, collectionGenericClass)) {
+        if (globalEqualsMethodReflectionRef != null && ReflectUtil.methodIsNotPresent(globalEqualsMethodReflectionRef, collectionGenericClass)) {
             throw new RuntimeException(String.format("Collection class %s doesnt declare the method %s", collectionGenericClass, globalEqualsMethodReflectionRef));
+        }
+
+        if (globalEqualsFields != null) {
+            globalEqualsFields.forEach(equalsField -> {
+                if (ReflectUtil.fieldPathIsNotPresent(equalsField, collectionGenericClass)) {
+                    throw new RuntimeException(String.format("Equals field %s is not present in collection generic class %s", equalsField, collectionGenericClass));
+                }
+            });
         }
     }
 }

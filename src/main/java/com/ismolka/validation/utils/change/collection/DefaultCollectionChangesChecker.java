@@ -19,7 +19,7 @@ public class DefaultCollectionChangesChecker<T> extends DefaultValueChangesCheck
     private final Set<FieldPath> fieldsForMatching;
 
 
-    protected DefaultCollectionChangesChecker(Set<ValueCheckDescriptor> attributesCheckDescriptors, boolean stopOnFirstDiff, Method globalEqualsMethodReflectionRef, BiPredicate<T, T> globalBiEqualsMethodCodeRef, Set<FieldPath> globalEqualsFields, Set<CollectionOperation> forOperations, Set<FieldPath> fieldsForMatching) {
+    protected DefaultCollectionChangesChecker(Set<ValueCheckDescriptor<?>> attributesCheckDescriptors, boolean stopOnFirstDiff, Method globalEqualsMethodReflectionRef, BiPredicate<T, T> globalBiEqualsMethodCodeRef, Set<FieldPath> globalEqualsFields, Set<CollectionOperation> forOperations, Set<FieldPath> fieldsForMatching) {
         super(attributesCheckDescriptors, stopOnFirstDiff, globalEqualsMethodReflectionRef, globalBiEqualsMethodCodeRef, globalEqualsFields);
         this.forOperations = forOperations;
         this.fieldsForMatching = fieldsForMatching;

@@ -8,23 +8,23 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiPredicate;
 
-public record ValueCheckDescriptor(
+public record ValueCheckDescriptor<Q>(
         FieldPath attribute,
 
         Set<FieldPath> equalsFields,
 
         Method equalsMethodReflectionRef,
 
-        BiPredicate biEqualsMethodCodeRef,
+        BiPredicate<Q, Q> biEqualsMethodCodeRef,
 
-        ChangesChecker changesChecker
+        ChangesChecker<Q> changesChecker
 ) {
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        ValueCheckDescriptor that = (ValueCheckDescriptor) o;
+        ValueCheckDescriptor<?> that = (ValueCheckDescriptor<?>) o;
         return Objects.equals(attribute, that.attribute) && Objects.equals(equalsFields, that.equalsFields) && Objects.equals(equalsMethodReflectionRef, that.equalsMethodReflectionRef) && Objects.equals(biEqualsMethodCodeRef, that.biEqualsMethodCodeRef) && Objects.equals(changesChecker, that.changesChecker);
     }
 
