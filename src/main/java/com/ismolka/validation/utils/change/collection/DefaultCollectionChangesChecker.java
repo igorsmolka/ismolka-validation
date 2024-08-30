@@ -44,8 +44,17 @@ public class DefaultCollectionChangesChecker<T> extends DefaultValueChangesCheck
 
         if (!CollectionUtils.isEmpty(fieldsForMatching)) {
             Map<String, MatchingElement<T>> collectionByKeyMap = new HashMap<>();
+
+            Set<MatchingElement<T>> objectsWithNullFieldsMatchingInNewCollection = new OrderedHashSet<>();
+            Set<MatchingElement<T>> objectsWithNullFieldsMatchingInOldCollection = new OrderedHashSet<>();
+
             int newObjIndex = 0;
             for (T newObject : newCollection) {
+                if (fieldsForMatchingIsNullForObject(newObject)) {
+                    objectsWithNullFieldsMatchingInNewCollection.add(new MatchingElement<>(newObject, false, newObjIndex));
+                    continue;
+                }
+
                 collectionByKeyMap.put(getKeyString(newObject), new MatchingElement<>(newObject, false, newObjIndex));
                 newObjIndex++;
             }
@@ -53,6 +62,11 @@ public class DefaultCollectionChangesChecker<T> extends DefaultValueChangesCheck
             int actualObjIndex = 0;
 
             for (T actualObj : oldCollection) {
+                if (fieldsForMatchingIsNullForObject(actualObj)) {
+                    objectsWithNullFieldsMatchingInOldCollection.add(new MatchingElement<>(actualObj, false, actualObjIndex));
+                    continue;
+                }
+
                 String objectKeyString = getKeyString(actualObj);
 
                 MatchingElement<T> matched = collectionByKeyMap.get(objectKeyString);
@@ -74,7 +88,6 @@ public class DefaultCollectionChangesChecker<T> extends DefaultValueChangesCheck
                     matched.setMatchWasFound(true);
 
                     if (forOperations.contains(CollectionOperation.UPDATE)) {
-
                         CollectionElementDifference<T> collectionElementDifference = checkAndReturnDiff(actualObj, matched.elementValue, actualObjIndex, matched.elementIndex);
                         if (collectionElementDifference != null) {
                             if (!collectionDifference.containsKey(CollectionOperation.UPDATE)) {
@@ -93,19 +106,47 @@ public class DefaultCollectionChangesChecker<T> extends DefaultValueChangesCheck
                 actualObjIndex++;
             }
 
-            if (forOperations.contains(CollectionOperation.ADD)) {
-                if (!needsStop) {
-                    for (MatchingElement<T> matchingElement : collectionByKeyMap.values()) {
-                        if (!matchingElement.matchWasFound) {
-                            if (!collectionDifference.containsKey(CollectionOperation.ADD)) {
-                                collectionDifference.put(CollectionOperation.ADD, new OrderedHashSet<>());
-                            }
+            if (!objectsWithNullFieldsMatchingInNewCollection.isEmpty() && forOperations.contains(CollectionOperation.ADD) && !needsStop) {
+                if (!collectionDifference.containsKey(CollectionOperation.ADD)) {
+                    collectionDifference.put(CollectionOperation.ADD, new OrderedHashSet<>());
+                }
 
-                            CollectionElementDifference<T> collectionElementDifference = new CollectionElementDifference<>(null, null, matchingElement.elementValue, null, matchingElement.elementIndex);
-                            collectionDifference.get(CollectionOperation.ADD).add(collectionElementDifference);
-                            if (stopOnFirstDiff) {
-                                break;
-                            }
+                for (MatchingElement<T> objectWithNullFieldsMatchingInNewCollection : objectsWithNullFieldsMatchingInNewCollection) {
+                    CollectionElementDifference<T> collectionElementDifference = new CollectionElementDifference<>(null, null, objectWithNullFieldsMatchingInNewCollection.elementValue, null, objectWithNullFieldsMatchingInNewCollection.elementIndex);
+                    collectionDifference.get(CollectionOperation.ADD).add(collectionElementDifference);
+                    if (stopOnFirstDiff) {
+                        needsStop = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!objectsWithNullFieldsMatchingInOldCollection.isEmpty() && forOperations.contains(CollectionOperation.REMOVE) && !needsStop) {
+                if (!collectionDifference.containsKey(CollectionOperation.REMOVE)) {
+                    collectionDifference.put(CollectionOperation.REMOVE, new OrderedHashSet<>());
+                }
+
+                for (MatchingElement<T> objectWithNullFieldsMatchingInOldCollection : objectsWithNullFieldsMatchingInOldCollection) {
+                    CollectionElementDifference<T> collectionElementDifference = new CollectionElementDifference<>(null, objectWithNullFieldsMatchingInOldCollection.elementValue, null, objectWithNullFieldsMatchingInOldCollection.elementIndex, null);
+                    collectionDifference.get(CollectionOperation.REMOVE).add(collectionElementDifference);
+                    if (stopOnFirstDiff) {
+                        needsStop = true;
+                        break;
+                    }
+                }
+            }
+
+            if (forOperations.contains(CollectionOperation.ADD) && !needsStop) {
+                for (MatchingElement<T> matchingElement : collectionByKeyMap.values()) {
+                    if (!matchingElement.matchWasFound) {
+                        if (!collectionDifference.containsKey(CollectionOperation.ADD)) {
+                            collectionDifference.put(CollectionOperation.ADD, new OrderedHashSet<>());
+                        }
+
+                        CollectionElementDifference<T> collectionElementDifference = new CollectionElementDifference<>(null, null, matchingElement.elementValue, null, matchingElement.elementIndex);
+                        collectionDifference.get(CollectionOperation.ADD).add(collectionElementDifference);
+                        if (stopOnFirstDiff) {
+                            break;
                         }
                     }
                 }
@@ -211,6 +252,25 @@ public class DefaultCollectionChangesChecker<T> extends DefaultValueChangesCheck
         }
 
         return null;
+    }
+
+
+    private boolean fieldsForMatchingIsNullForObject(Object object) {
+        if (object == null) {
+            return true;
+        }
+
+        boolean isNull = true;
+
+        for (FieldPath fieldPath : fieldsForMatching) {
+            Object fieldVal = fieldPath.getValueFromObject(object);
+            if (fieldVal != null) {
+                isNull = false;
+                break;
+            }
+        }
+
+        return isNull;
     }
 
     private String getKeyString(Object object) {
