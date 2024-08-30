@@ -13,9 +13,9 @@ public record ValueCheckDescriptor<Q>(
 
         Set<FieldPath> equalsFields,
 
-        Method equalsMethodReflectionRef,
+        Method equalsMethodReflection,
 
-        BiPredicate<Q, Q> biEqualsMethodCodeRef,
+        BiPredicate<Q, Q> biEqualsMethod,
 
         ChangesChecker<Q> changesChecker
 ) {
@@ -25,11 +25,11 @@ public record ValueCheckDescriptor<Q>(
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ValueCheckDescriptor<?> that = (ValueCheckDescriptor<?>) o;
-        return Objects.equals(attribute, that.attribute) && Objects.equals(equalsFields, that.equalsFields) && Objects.equals(equalsMethodReflectionRef, that.equalsMethodReflectionRef) && Objects.equals(biEqualsMethodCodeRef, that.biEqualsMethodCodeRef) && Objects.equals(changesChecker, that.changesChecker);
+        return Objects.equals(attribute, that.attribute) && Objects.equals(equalsFields, that.equalsFields) && Objects.equals(equalsMethodReflection, that.equalsMethodReflection) && Objects.equals(biEqualsMethod, that.biEqualsMethod) && Objects.equals(changesChecker, that.changesChecker);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(attribute, equalsFields, equalsMethodReflectionRef, biEqualsMethodCodeRef, changesChecker);
+        return Objects.hash(attribute, equalsFields, equalsMethodReflection, biEqualsMethod, changesChecker);
     }
 }

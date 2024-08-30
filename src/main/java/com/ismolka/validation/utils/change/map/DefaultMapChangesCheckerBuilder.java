@@ -1,8 +1,6 @@
 package com.ismolka.validation.utils.change.map;
 
-import com.ismolka.validation.utils.change.collection.DefaultCollectionChangesCheckerBuilder;
 import com.ismolka.validation.utils.change.value.ValueCheckDescriptor;
-import com.ismolka.validation.utils.constant.CollectionOperation;
 import com.ismolka.validation.utils.constant.MapOperation;
 import com.ismolka.validation.utils.metainfo.FieldPath;
 import com.ismolka.validation.utils.metainfo.MetaInfoExtractorUtil;
@@ -18,19 +16,19 @@ import java.util.function.BiPredicate;
 
 public class DefaultMapChangesCheckerBuilder<K, V> {
 
-    private Class<K> keyClass;
+    Class<K> keyClass;
 
-    private Class<V> valueClass;
+    Class<V> valueClass;
 
-    private Set<MapOperation> forOperations;
+    Set<MapOperation> forOperations;
 
     Set<ValueCheckDescriptor<?>> attributesCheckDescriptors;
 
     boolean stopOnFirstDiff;
 
-    Method globalEqualsMethodReflectionRef;
+    Method globalEqualsMethodReflection;
 
-    BiPredicate<V, V> globalBiEqualsMethodCodeRef;
+    BiPredicate<V, V> globalBiEqualsMethod;
 
     Set<String> globalEqualsFields;
 
@@ -39,7 +37,7 @@ public class DefaultMapChangesCheckerBuilder<K, V> {
         return new DefaultMapChangesCheckerBuilder<>(keyClass, valueClass);
     }
 
-    public DefaultMapChangesCheckerBuilder(Class<K> keyClass, Class<V> valueClass) {
+    private DefaultMapChangesCheckerBuilder(Class<K> keyClass, Class<V> valueClass) {
         this.keyClass = keyClass;
         this.valueClass = valueClass;
     }
@@ -60,14 +58,14 @@ public class DefaultMapChangesCheckerBuilder<K, V> {
         return this;
     }
 
-    public DefaultMapChangesCheckerBuilder<K, V> globalEqualsMethodReflectionRef(Method globalEqualsMethodReflectionRef) {
-        this.globalEqualsMethodReflectionRef = globalEqualsMethodReflectionRef;
+    public DefaultMapChangesCheckerBuilder<K, V> globalEqualsMethodReflection(Method globalEqualsMethodReflectionRef) {
+        this.globalEqualsMethodReflection = globalEqualsMethodReflectionRef;
 
         return this;
     }
 
-    public DefaultMapChangesCheckerBuilder<K, V> globalBiEqualsMethodCodeRef(BiPredicate<V, V> globalBiEqualsMethodCodeRef) {
-        this.globalBiEqualsMethodCodeRef = globalBiEqualsMethodCodeRef;
+    public DefaultMapChangesCheckerBuilder<K, V> globalBiEqualsMethod(BiPredicate<V, V> globalBiEqualsMethodCodeRef) {
+        this.globalBiEqualsMethod = globalBiEqualsMethodCodeRef;
 
         return this;
     }
@@ -111,7 +109,7 @@ public class DefaultMapChangesCheckerBuilder<K, V> {
 
         Set<FieldPath> globalEqualsFieldsAsFieldPaths = !CollectionUtils.isEmpty(globalEqualsFields) ? MetaInfoExtractorUtil.extractFieldPathsMetaInfo(globalEqualsFields.toArray(String[]::new), valueClass) : new OrderedHashSet<>();
 
-        return new DefaultMapChangesChecker<>(attributesCheckDescriptors, stopOnFirstDiff, globalEqualsMethodReflectionRef, globalBiEqualsMethodCodeRef, globalEqualsFieldsAsFieldPaths, keyClass, valueClass, forOperations);
+        return new DefaultMapChangesChecker<>(attributesCheckDescriptors, stopOnFirstDiff, globalEqualsMethodReflection, globalBiEqualsMethod, globalEqualsFieldsAsFieldPaths, keyClass, valueClass, forOperations);
     }
 
     private void validate() {
@@ -124,17 +122,17 @@ public class DefaultMapChangesCheckerBuilder<K, V> {
         }
 
         if (!CollectionUtils.isEmpty(attributesCheckDescriptors) || !CollectionUtils.isEmpty(globalEqualsFields)) {
-            if (globalBiEqualsMethodCodeRef != null || globalEqualsMethodReflectionRef != null) {
+            if (globalBiEqualsMethod != null || globalEqualsMethodReflection != null) {
                 throw new RuntimeException("Cannot set global equals method when attribute check descriptors or equals fields are defined");
             }
         }
 
-        if (globalBiEqualsMethodCodeRef != null && globalEqualsMethodReflectionRef != null) {
+        if (globalBiEqualsMethod != null && globalEqualsMethodReflection != null) {
             throw new RuntimeException("Should be only one kind of defining global equals method for map check");
         }
 
-        if (globalEqualsMethodReflectionRef != null && ReflectUtil.methodIsNotPresent(globalEqualsMethodReflectionRef, valueClass)) {
-            throw new RuntimeException(String.format("Value class %s doesnt declare the method %s", valueClass, globalEqualsMethodReflectionRef));
+        if (globalEqualsMethodReflection != null && ReflectUtil.methodIsNotPresent(globalEqualsMethodReflection, valueClass)) {
+            throw new RuntimeException(String.format("Value class %s doesnt declare the method %s", valueClass, globalEqualsMethodReflection));
         }
 
         if (globalEqualsFields != null) {

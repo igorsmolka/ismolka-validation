@@ -18,9 +18,9 @@ public class DefaultValueChangesCheckerBuilder<T> {
 
     boolean stopOnFirstDiff;
 
-    Method globalEqualsMethodReflectionRef;
+    Method globalEqualsMethodReflection;
 
-    BiPredicate<T, T> globalBiEqualsMethodCodeRef;
+    BiPredicate<T, T> globalBiEqualsMethod;
 
     Set<String> globalEqualsFields;
 
@@ -48,14 +48,14 @@ public class DefaultValueChangesCheckerBuilder<T> {
         return this;
     }
 
-    public DefaultValueChangesCheckerBuilder<T> globalEqualsMethodReflectionRef(Method globalEqualsMethodReflectionRef) {
-        this.globalEqualsMethodReflectionRef = globalEqualsMethodReflectionRef;
+    public DefaultValueChangesCheckerBuilder<T> globalEqualsMethodReflection(Method globalEqualsMethodReflectionRef) {
+        this.globalEqualsMethodReflection = globalEqualsMethodReflectionRef;
 
         return this;
     }
 
-    public DefaultValueChangesCheckerBuilder<T> globalBiEqualsMethodCodeRef(BiPredicate<T, T> globalBiEqualsMethodCodeRef) {
-        this.globalBiEqualsMethodCodeRef = globalBiEqualsMethodCodeRef;
+    public DefaultValueChangesCheckerBuilder<T> globalBiEqualsMethod(BiPredicate<T, T> globalBiEqualsMethodCodeRef) {
+        this.globalBiEqualsMethod = globalBiEqualsMethodCodeRef;
 
         return this;
     }
@@ -75,7 +75,7 @@ public class DefaultValueChangesCheckerBuilder<T> {
 
         Set<FieldPath> equalsFieldsAsFieldPaths = !CollectionUtils.isEmpty(globalEqualsFields) ? MetaInfoExtractorUtil.extractFieldPathsMetaInfo(globalEqualsFields.toArray(String[]::new), targetClass) : new OrderedHashSet<>();
 
-        return new DefaultValueChangesChecker<>(attributesCheckDescriptors, stopOnFirstDiff, globalEqualsMethodReflectionRef, globalBiEqualsMethodCodeRef, equalsFieldsAsFieldPaths);
+        return new DefaultValueChangesChecker<>(attributesCheckDescriptors, stopOnFirstDiff, globalEqualsMethodReflection, globalBiEqualsMethod, equalsFieldsAsFieldPaths);
     }
 
     private void validate() {
@@ -84,17 +84,17 @@ public class DefaultValueChangesCheckerBuilder<T> {
         }
 
         if (!CollectionUtils.isEmpty(attributesCheckDescriptors) || !CollectionUtils.isEmpty(globalEqualsFields)) {
-            if (globalBiEqualsMethodCodeRef != null || globalEqualsMethodReflectionRef != null) {
+            if (globalBiEqualsMethod != null || globalEqualsMethodReflection != null) {
                 throw new RuntimeException("Cannot set global equals method when attribute check descriptors or equals fields are defined");
             }
         }
 
-        if (globalBiEqualsMethodCodeRef != null && globalEqualsMethodReflectionRef != null) {
+        if (globalBiEqualsMethod != null && globalEqualsMethodReflection != null) {
             throw new RuntimeException("Should be only one kind of defining global equals method for value check");
         }
 
-        if (globalEqualsMethodReflectionRef != null && ReflectUtil.methodIsNotPresent(globalEqualsMethodReflectionRef, targetClass)) {
-            throw new RuntimeException(String.format("Target class %s doesnt declare the method %s", targetClass, globalEqualsMethodReflectionRef));
+        if (globalEqualsMethodReflection != null && ReflectUtil.methodIsNotPresent(globalEqualsMethodReflection, targetClass)) {
+            throw new RuntimeException(String.format("Target class %s doesnt declare the method %s", targetClass, globalEqualsMethodReflection));
         }
 
         if (globalEqualsFields != null) {

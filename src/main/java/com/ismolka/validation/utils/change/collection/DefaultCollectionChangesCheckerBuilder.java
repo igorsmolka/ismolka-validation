@@ -26,9 +26,9 @@ public class DefaultCollectionChangesCheckerBuilder<T> {
 
     Set<String> fieldsForMatching;
 
-    Method globalEqualsMethodReflectionRef;
+    Method globalEqualsMethodReflection;
 
-    BiPredicate<T, T> globalBiEqualsMethodCodeRef;
+    BiPredicate<T, T> globalBiEqualsMethod;
 
     Set<String> globalEqualsFields;
 
@@ -57,14 +57,14 @@ public class DefaultCollectionChangesCheckerBuilder<T> {
         return this;
     }
 
-    public DefaultCollectionChangesCheckerBuilder<T> globalEqualsMethodReflectionRef(Method globalEqualsMethodReflectionRef) {
-        this.globalEqualsMethodReflectionRef = globalEqualsMethodReflectionRef;
+    public DefaultCollectionChangesCheckerBuilder<T> globalEqualsMethodReflection(Method globalEqualsMethodReflectionRef) {
+        this.globalEqualsMethodReflection = globalEqualsMethodReflectionRef;
 
         return this;
     }
 
-    public DefaultCollectionChangesCheckerBuilder<T> globalBiEqualsMethodCodeRef(BiPredicate<T, T> globalBiEqualsMethodCodeRef) {
-        this.globalBiEqualsMethodCodeRef = globalBiEqualsMethodCodeRef;
+    public DefaultCollectionChangesCheckerBuilder<T> globalBiEqualsMethodCode(BiPredicate<T, T> globalBiEqualsMethodCodeRef) {
+        this.globalBiEqualsMethod = globalBiEqualsMethodCodeRef;
 
         return this;
     }
@@ -120,7 +120,7 @@ public class DefaultCollectionChangesCheckerBuilder<T> {
 
         Set<FieldPath> fieldsForMatchingAsFieldPaths = !CollectionUtils.isEmpty(fieldsForMatching) ? MetaInfoExtractorUtil.extractFieldPathsMetaInfo(fieldsForMatching.toArray(String[]::new), collectionGenericClass) : new OrderedHashSet<>();
 
-        return new DefaultCollectionChangesChecker<>(collectionGenericClass, attributesCheckDescriptors, stopOnFirstDiff, globalEqualsMethodReflectionRef, globalBiEqualsMethodCodeRef, globalEqualsFieldsAsFieldPaths, forOperations, fieldsForMatchingAsFieldPaths);
+        return new DefaultCollectionChangesChecker<>(collectionGenericClass, attributesCheckDescriptors, stopOnFirstDiff, globalEqualsMethodReflection, globalBiEqualsMethod, globalEqualsFieldsAsFieldPaths, forOperations, fieldsForMatchingAsFieldPaths);
     }
 
     private void validate() {
@@ -129,17 +129,17 @@ public class DefaultCollectionChangesCheckerBuilder<T> {
         }
 
         if (!CollectionUtils.isEmpty(attributesCheckDescriptors) || !CollectionUtils.isEmpty(globalEqualsFields)) {
-            if (globalBiEqualsMethodCodeRef != null || globalEqualsMethodReflectionRef != null) {
+            if (globalBiEqualsMethod != null || globalEqualsMethodReflection != null) {
                 throw new RuntimeException("Cannot set global equals method when attribute check descriptors or equals fields are defined");
             }
         }
 
-        if (globalBiEqualsMethodCodeRef != null && globalEqualsMethodReflectionRef != null) {
+        if (globalBiEqualsMethod != null && globalEqualsMethodReflection != null) {
             throw new RuntimeException("Should be only one kind of defining global equals method for collection check");
         }
 
-        if (globalEqualsMethodReflectionRef != null && ReflectUtil.methodIsNotPresent(globalEqualsMethodReflectionRef, collectionGenericClass)) {
-            throw new RuntimeException(String.format("Collection class %s doesnt declare the method %s", collectionGenericClass, globalEqualsMethodReflectionRef));
+        if (globalEqualsMethodReflection != null && ReflectUtil.methodIsNotPresent(globalEqualsMethodReflection, collectionGenericClass)) {
+            throw new RuntimeException(String.format("Collection class %s doesnt declare the method %s", collectionGenericClass, globalEqualsMethodReflection));
         }
 
         if (globalEqualsFields != null) {

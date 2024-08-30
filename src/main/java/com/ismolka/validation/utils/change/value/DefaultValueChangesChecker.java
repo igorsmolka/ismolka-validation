@@ -19,21 +19,21 @@ public class DefaultValueChangesChecker<T> implements ValueChangesChecker<T> {
 
     protected boolean stopOnFirstDiff;
 
-    protected Method globalEqualsMethodReflectionRef;
+    protected Method globalEqualsMethodReflection;
 
-    protected BiPredicate<T, T> globalBiEqualsMethodCodeRef;
+    protected BiPredicate<T, T> globalBiEqualsMethod;
 
     protected final Set<FieldPath> globalEqualsFields;
 
     protected DefaultValueChangesChecker(Set<ValueCheckDescriptor<?>> attributesCheckDescriptors,
                                          boolean stopOnFirstDiff,
-                                         Method globalEqualsMethodReflectionRef,
-                                         BiPredicate<T, T> globalBiEqualsMethodCodeRef,
+                                         Method globalEqualsMethodReflection,
+                                         BiPredicate<T, T> globalBiEqualsMethod,
                                          Set<FieldPath> globalEqualsFields) {
         this.attributesCheckDescriptors = attributesCheckDescriptors;
         this.stopOnFirstDiff = stopOnFirstDiff;
-        this.globalEqualsMethodReflectionRef = globalEqualsMethodReflectionRef;
-        this.globalBiEqualsMethodCodeRef = globalBiEqualsMethodCodeRef;
+        this.globalEqualsMethodReflection = globalEqualsMethodReflection;
+        this.globalBiEqualsMethod = globalBiEqualsMethod;
         this.globalEqualsFields = globalEqualsFields;
     }
 
@@ -58,11 +58,11 @@ public class DefaultValueChangesChecker<T> implements ValueChangesChecker<T> {
 
         Class<T> sourceClass = (Class<T>) Stream.of(newObj, oldObj).filter(Objects::nonNull).findFirst().get().getClass();
 
-        if (globalEqualsMethodReflectionRef != null) {
+        if (globalEqualsMethodReflection != null) {
             T firstNonNull = Stream.of(newObj, oldObj).filter(Objects::nonNull).findFirst().get();
             T argObj = Stream.of(newObj, oldObj).filter(obj -> obj != firstNonNull).findFirst().get();
 
-            Boolean result = (Boolean) ReflectionUtils.invokeMethod(globalEqualsMethodReflectionRef, firstNonNull, argObj);
+            Boolean result = (Boolean) ReflectionUtils.invokeMethod(globalEqualsMethodReflection, firstNonNull, argObj);
             if (result != null && !result) {
                 diffMap.put(null, new ValueDifference<>(null, null, null, sourceClass, oldObj, newObj));
             } else {
@@ -70,8 +70,8 @@ public class DefaultValueChangesChecker<T> implements ValueChangesChecker<T> {
             }
         }
 
-        if (globalBiEqualsMethodCodeRef != null) {
-            boolean isEquals = globalBiEqualsMethodCodeRef.test(oldObj, newObj);
+        if (globalBiEqualsMethod != null) {
+            boolean isEquals = globalBiEqualsMethod.test(oldObj, newObj);
 
             if (!isEquals) {
                 diffMap.put(null, new ValueDifference<>(null, null, null, sourceClass, oldObj, newObj));
@@ -155,8 +155,8 @@ public class DefaultValueChangesChecker<T> implements ValueChangesChecker<T> {
         }
 
 
-        if (attributeToCheck.equalsMethodReflectionRef() != null) {
-            Boolean result = (Boolean) ReflectionUtils.invokeMethod(attributeToCheck.equalsMethodReflectionRef(), oldAttrVal, newAttrVal);
+        if (attributeToCheck.equalsMethodReflection() != null) {
+            Boolean result = (Boolean) ReflectionUtils.invokeMethod(attributeToCheck.equalsMethodReflection(), oldAttrVal, newAttrVal);
 
             if (result != null && result) {
                 diffMap.put(attributeToCheck.attribute().path(), new ValueDifference<>(attributeToCheck.attribute().path(), fieldRootClass, fieldSourceClass, (Class<X>) fieldClass, (X) oldAttrVal, (X) newAttrVal));
@@ -180,8 +180,8 @@ public class DefaultValueChangesChecker<T> implements ValueChangesChecker<T> {
             return;
         }
 
-        if (attributeToCheck.biEqualsMethodCodeRef() != null) {
-            BiPredicate<X, X> biPredicate = attributeToCheck.biEqualsMethodCodeRef();
+        if (attributeToCheck.biEqualsMethod() != null) {
+            BiPredicate<X, X> biPredicate = attributeToCheck.biEqualsMethod();
             boolean biEqualsResult = biPredicate.test((X) oldAttrVal, (X) newAttrVal);
             if (!biEqualsResult) {
                 diffMap.put(attributeToCheck.attribute().path(), new ValueDifference<>(attributeToCheck.attribute().path(), fieldRootClass, fieldSourceClass, (Class<X>) fieldClass, (X) oldAttrVal, (X) newAttrVal));
