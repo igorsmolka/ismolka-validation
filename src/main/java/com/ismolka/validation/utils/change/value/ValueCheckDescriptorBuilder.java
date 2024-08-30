@@ -82,31 +82,31 @@ public class ValueCheckDescriptorBuilder<Q> {
 
     private void validate() {
         if (sourceClass == null) {
-            throw new RuntimeException("Source class is not defined");
+            throw new IllegalArgumentException("Source class is not defined");
         }
 
         if (attribute == null) {
-            throw new RuntimeException("Cannot create descriptor without attribute");
+            throw new IllegalArgumentException("Cannot create descriptor without attribute");
         }
 
         if (!CollectionUtils.isEmpty(equalsFields) || changesChecker != null) {
             if (biEqualsMethod != null || equalsMethodReflection != null) {
-                throw new RuntimeException("Cannot set global equals method when equals fields or changes checker are defined");
+                throw new IllegalArgumentException("Cannot set global equals method when equals fields or changes checker are defined");
             }
         }
 
         if (biEqualsMethod != null && equalsMethodReflection != null) {
-            throw new RuntimeException("Should be only one kind of defining global equals method for check description");
+            throw new IllegalArgumentException("Should be only one kind of defining global equals method for check description");
         }
 
         if (equalsMethodReflection != null && ReflectUtil.methodIsNotPresent(equalsMethodReflection, sourceClass)) {
-            throw new RuntimeException(String.format("Source class %s doesnt declare the method %s", sourceClass, equalsMethodReflection));
+            throw new IllegalArgumentException(String.format("Source class %s doesnt declare the method %s", sourceClass, equalsMethodReflection));
         }
 
         if (equalsFields != null) {
             equalsFields.forEach(equalsField -> {
                 if (ReflectUtil.fieldPathIsNotPresent(equalsField, targetClass)) {
-                    throw new RuntimeException(String.format("Equals field %s is not present in class %s", equalsField, targetClass));
+                    throw new IllegalArgumentException(String.format("Equals field %s is not present in class %s", equalsField, targetClass));
                 }
             });
         }

@@ -137,7 +137,7 @@ public class DefaultValueChangesChecker<T> implements ValueChangesChecker<T> {
         if (changesChecker != null) {
             if (CollectionChangesChecker.class.isAssignableFrom(changesChecker.getClass())) {
                 if (!Collection.class.isAssignableFrom(newAttrVal.getClass()) || !Collection.class.isAssignableFrom(oldAttrVal.getClass())) {
-                    throw new RuntimeException("One of objects is not a collection");
+                    throw new IllegalArgumentException("One of objects is not a collection");
                 }
 
                 CollectionChangesChecker<X> collectionChangesChecker = (CollectionChangesChecker<X>) changesChecker;

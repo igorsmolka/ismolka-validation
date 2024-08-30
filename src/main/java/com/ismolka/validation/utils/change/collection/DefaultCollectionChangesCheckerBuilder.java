@@ -125,22 +125,22 @@ public class DefaultCollectionChangesCheckerBuilder<T> {
 
     private void validate() {
         if (collectionGenericClass == null) {
-            throw new RuntimeException("Collection generic class is not defined");
+            throw new IllegalArgumentException("Collection generic class is not defined");
         }
 
         if (!CollectionUtils.isEmpty(attributesCheckDescriptors) || !CollectionUtils.isEmpty(globalEqualsFields)) {
             if (globalBiEqualsMethod != null || globalEqualsMethodReflection != null) {
-                throw new RuntimeException("Cannot set global equals method when attribute check descriptors or equals fields are defined");
+                throw new IllegalArgumentException("Cannot set global equals method when attribute check descriptors or equals fields are defined");
             }
         }
 
         if (globalBiEqualsMethod != null && globalEqualsMethodReflection != null) {
-            throw new RuntimeException("Should be only one kind of defining global equals method for collection check");
+            throw new IllegalArgumentException("Should be only one kind of defining global equals method for collection check");
         }
 
         if (globalEqualsMethodReflection != null) {
             if (ReflectUtil.methodIsNotPresent(globalEqualsMethodReflection, collectionGenericClass)) {
-                throw new RuntimeException(String.format("Collection class %s doesnt declare the method %s", collectionGenericClass, globalEqualsMethodReflection));
+                throw new IllegalArgumentException(String.format("Collection class %s doesnt declare the method %s", collectionGenericClass, globalEqualsMethodReflection));
             }
 
             if (!globalEqualsMethodReflection.getReturnType().equals(boolean.class) && !globalEqualsMethodReflection.getReturnType().equals(Boolean.class)) {
@@ -151,7 +151,7 @@ public class DefaultCollectionChangesCheckerBuilder<T> {
         if (globalEqualsFields != null) {
             globalEqualsFields.forEach(equalsField -> {
                 if (ReflectUtil.fieldPathIsNotPresent(equalsField, collectionGenericClass)) {
-                    throw new RuntimeException(String.format("Equals field %s is not present in collection generic class %s", equalsField, collectionGenericClass));
+                    throw new IllegalArgumentException(String.format("Equals field %s is not present in collection generic class %s", equalsField, collectionGenericClass));
                 }
             });
         }

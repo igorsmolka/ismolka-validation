@@ -114,26 +114,26 @@ public class DefaultMapChangesCheckerBuilder<K, V> {
 
     private void validate() {
         if (keyClass == null) {
-            throw new RuntimeException("Key class is not defined");
+            throw new IllegalArgumentException("Key class is not defined");
         }
 
         if (valueClass == null) {
-            throw new RuntimeException("Value class is not defined");
+            throw new IllegalArgumentException("Value class is not defined");
         }
 
         if (!CollectionUtils.isEmpty(attributesCheckDescriptors) || !CollectionUtils.isEmpty(globalEqualsFields)) {
             if (globalBiEqualsMethod != null || globalEqualsMethodReflection != null) {
-                throw new RuntimeException("Cannot set global equals method when attribute check descriptors or equals fields are defined");
+                throw new IllegalArgumentException("Cannot set global equals method when attribute check descriptors or equals fields are defined");
             }
         }
 
         if (globalBiEqualsMethod != null && globalEqualsMethodReflection != null) {
-            throw new RuntimeException("Should be only one kind of defining global equals method for map check");
+            throw new IllegalArgumentException("Should be only one kind of defining global equals method for map check");
         }
 
         if (globalEqualsMethodReflection != null) {
             if (ReflectUtil.methodIsNotPresent(globalEqualsMethodReflection, valueClass)) {
-                throw new RuntimeException(String.format("Value class %s doesnt declare the method %s", valueClass, globalEqualsMethodReflection));
+                throw new IllegalArgumentException(String.format("Value class %s doesnt declare the method %s", valueClass, globalEqualsMethodReflection));
             }
 
             if (!globalEqualsMethodReflection.getReturnType().equals(boolean.class) && !globalEqualsMethodReflection.getReturnType().equals(Boolean.class)) {
@@ -144,7 +144,7 @@ public class DefaultMapChangesCheckerBuilder<K, V> {
         if (globalEqualsFields != null) {
             globalEqualsFields.forEach(equalsField -> {
                 if (ReflectUtil.fieldPathIsNotPresent(equalsField, valueClass)) {
-                    throw new RuntimeException(String.format("Equals field %s is not present in map value class %s", equalsField, valueClass));
+                    throw new IllegalArgumentException(String.format("Equals field %s is not present in map value class %s", equalsField, valueClass));
                 }
             });
         }
