@@ -176,7 +176,7 @@ public class CheckExistingByConstraintAndUnmodifiableAttributesValidator extends
         for (UnmodifiedAttributeMetaInfo<?> unmodifiedAttr : checkExistingMetaInfo.unmodifiedAttributeMetaInfo) {
             ValueChangesCheckerResult valueChangesCheckerResult = getValueChangesCheckerResultForUnmodifiedAttribute(unmodifiedAttr, sourceObject, actualSourceObject);
             if (!valueChangesCheckerResult.equalsResult()) {
-                ValueDifference<?> valueDifference = valueChangesCheckerResult.differenceMap().get(unmodifiedAttr.fieldPath.path()).unwrap(ValueDifference.class);
+                ValueDifference<?> valueDifference = valueChangesCheckerResult.differenceMap().get(null).unwrap(ValueDifference.class);
                 checkResult.add(new CheckUnmodifiableResult(unmodifiedAttr.fieldPath, valueDifference.newValue(), valueDifference.oldValue(), unmodifiedAttr.message, unmodifiedAttr.attributeErrorMessageNaming));
 
                 if (stopUnmodifiableCheckOnFirstMismatch) {
