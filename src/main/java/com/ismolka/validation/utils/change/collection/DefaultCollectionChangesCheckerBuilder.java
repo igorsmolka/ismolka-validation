@@ -138,8 +138,14 @@ public class DefaultCollectionChangesCheckerBuilder<T> {
             throw new RuntimeException("Should be only one kind of defining global equals method for collection check");
         }
 
-        if (globalEqualsMethodReflection != null && ReflectUtil.methodIsNotPresent(globalEqualsMethodReflection, collectionGenericClass)) {
-            throw new RuntimeException(String.format("Collection class %s doesnt declare the method %s", collectionGenericClass, globalEqualsMethodReflection));
+        if (globalEqualsMethodReflection != null) {
+            if (ReflectUtil.methodIsNotPresent(globalEqualsMethodReflection, collectionGenericClass)) {
+                throw new RuntimeException(String.format("Collection class %s doesnt declare the method %s", collectionGenericClass, globalEqualsMethodReflection));
+            }
+
+            if (!globalEqualsMethodReflection.getReturnType().equals(boolean.class) && !globalEqualsMethodReflection.getReturnType().equals(Boolean.class)) {
+                throw new IllegalArgumentException("Equals method must return boolean");
+            }
         }
 
         if (globalEqualsFields != null) {

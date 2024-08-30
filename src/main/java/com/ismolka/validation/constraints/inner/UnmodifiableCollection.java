@@ -13,7 +13,7 @@ public @interface UnmodifiableCollection {
 
     String value();
 
-    String equalsMethodName() default "equals";
+    String equalsMethodName() default "";
 
     Class<?> collectionGenericClass() default Object.class;
 

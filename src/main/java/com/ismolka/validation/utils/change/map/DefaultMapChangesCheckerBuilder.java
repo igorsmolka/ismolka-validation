@@ -131,8 +131,14 @@ public class DefaultMapChangesCheckerBuilder<K, V> {
             throw new RuntimeException("Should be only one kind of defining global equals method for map check");
         }
 
-        if (globalEqualsMethodReflection != null && ReflectUtil.methodIsNotPresent(globalEqualsMethodReflection, valueClass)) {
-            throw new RuntimeException(String.format("Value class %s doesnt declare the method %s", valueClass, globalEqualsMethodReflection));
+        if (globalEqualsMethodReflection != null) {
+            if (ReflectUtil.methodIsNotPresent(globalEqualsMethodReflection, valueClass)) {
+                throw new RuntimeException(String.format("Value class %s doesnt declare the method %s", valueClass, globalEqualsMethodReflection));
+            }
+
+            if (!globalEqualsMethodReflection.getReturnType().equals(boolean.class) && !globalEqualsMethodReflection.getReturnType().equals(Boolean.class)) {
+                throw new IllegalArgumentException("Equals method must return boolean");
+            }
         }
 
         if (globalEqualsFields != null) {
