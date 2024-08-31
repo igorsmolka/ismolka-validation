@@ -1,5 +1,6 @@
 package com.ismolka.validation.utils.change.collection;
 
+import com.ismolka.validation.utils.change.CheckerResult;
 import com.ismolka.validation.utils.constant.CollectionOperation;
 import com.ismolka.validation.utils.change.Difference;
 
@@ -10,7 +11,7 @@ import java.util.Set;
 public record CollectionChangesCheckerResult<F>(
         Class<F> collectionClass,
         Map<CollectionOperation, Set<CollectionElementDifference<F>>> collectionDifferenceMap,
-        boolean equalsResult) implements Difference {
+        boolean equalsResult) implements Difference, CheckerResult {
 
     @Override
     public boolean equals(Object o) {

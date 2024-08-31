@@ -1,5 +1,6 @@
 package com.ismolka.validation.utils.change.value;
 
+import com.ismolka.validation.utils.change.CheckerResult;
 import com.ismolka.validation.utils.change.Difference;
 
 import java.util.Map;
@@ -8,7 +9,7 @@ import java.util.Objects;
 public record ValueChangesCheckerResult(
         Map<String, Difference> differenceMap,
         boolean equalsResult
-) implements Difference {
+) implements Difference, CheckerResult {
 
     @Override
     public boolean equals(Object o) {

@@ -1,5 +1,6 @@
 package com.ismolka.validation.utils.change.map;
 
+import com.ismolka.validation.utils.change.CheckerResult;
 import com.ismolka.validation.utils.change.Difference;
 import com.ismolka.validation.utils.constant.MapOperation;
 
@@ -15,7 +16,7 @@ public record MapChangesCheckerResult<K, V>(
         Map<MapOperation, Set<MapElementDifference<K, V>>> mapDifference,
 
         boolean equalsResult
-) implements Difference {
+) implements Difference, CheckerResult {
 
     @Override
     public <TYPE extends Difference> TYPE unwrap(Class<TYPE> type) {
