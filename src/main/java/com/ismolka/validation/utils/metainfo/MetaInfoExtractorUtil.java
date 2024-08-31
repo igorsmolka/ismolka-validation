@@ -80,7 +80,7 @@ public class MetaInfoExtractorUtil {
         boolean embeddable = false;
 
         if (field == null) {
-            throw new IllegalArgumentException(String.format("Field with name %s doesn't exist", name));
+            throw new IllegalArgumentException(String.format("Field with name %s doesn't exist in class %s", name, clazz));
         }
 
         if (field.isAnnotationPresent(Id.class)) {
