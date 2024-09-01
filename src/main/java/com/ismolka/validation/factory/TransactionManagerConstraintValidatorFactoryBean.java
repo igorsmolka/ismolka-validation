@@ -6,6 +6,11 @@ import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.validation.beanvalidation.SpringConstraintValidatorFactory;
 
+/**
+ * This class extends {@link SpringConstraintValidatorFactory} and is needed to inject {@link JpaTransactionManager} into database checking validators,
+ *
+ * @author Ihar Smolka
+ */
 public class TransactionManagerConstraintValidatorFactoryBean extends SpringConstraintValidatorFactory {
 
     private JpaTransactionManager jpaTransactionManager;
