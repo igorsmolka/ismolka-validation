@@ -14,11 +14,11 @@ public interface CheckerResultNavigator {
 
     <T> Set<CollectionElementDifference<T>> getDifferenceForCollection(String fieldPath, Class<T> forClass, CollectionOperation... operations);
 
-    Difference getDifference(String fieldPath);
-
-    Difference getDifference();
+    <K, V> Set<MapElementDifference<K, V>> getDifferenceForMap(Class<K> keyClass, Class<V> valueClass, MapOperation... operations);
 
     <T> Set<CollectionElementDifference<T>> getDifferenceForCollection(Class<T> forClass, CollectionOperation... operations);
 
-    <K, V> Set<MapElementDifference<K, V>> getDifferenceForMap(Class<K> keyClass, Class<V> valueClass, MapOperation... operations);
+    Difference getDifference(String fieldPath);
+
+    Difference getDifference();
 }
