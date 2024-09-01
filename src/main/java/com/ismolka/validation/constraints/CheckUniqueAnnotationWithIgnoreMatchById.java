@@ -1,7 +1,6 @@
 package com.ismolka.validation.constraints;
 
-import com.ismolka.validation.constraints.inner.ConstraintKey;
-import com.ismolka.validation.validator.UniqueValidationConstraintValidatorField;
+import com.ismolka.validation.validator.CheckUniqueAnnotationWithIgnoreMatchByIdValidatorField;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 
@@ -12,14 +11,12 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-@Constraint(validatedBy = UniqueValidationConstraintValidatorField.class)
-public @interface UniqueValidationConstraints {
+@Constraint(validatedBy = CheckUniqueAnnotationWithIgnoreMatchByIdValidatorField.class)
+public @interface CheckUniqueAnnotationWithIgnoreMatchById {
 
-    String message() default "{com.ismolka.validation.constraints.UniqueValidationConstraint.message}";
+    String message() default "{com.ismolka.validation.constraints.CheckUniqueAnnotationWithIgnoreMatchById.message}";
 
     Class<?>[] groups() default { };
 
     Class<? extends Payload>[] payload() default { };
-
-    ConstraintKey[] constraintKeys() default {};
 }

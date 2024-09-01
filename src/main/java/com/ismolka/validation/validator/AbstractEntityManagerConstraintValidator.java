@@ -24,9 +24,6 @@ import java.util.Set;
 
 public abstract class AbstractEntityManagerConstraintValidator<T extends Annotation, A> implements ConstraintValidator<T, A>, JpaTransactionManagerConstraintValidator {
 
-//    @PersistenceContext
-//    protected EntityManager em;
-
     protected JpaTransactionManager jpaTransactionManager;
 
     protected String message;

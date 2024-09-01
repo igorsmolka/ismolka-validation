@@ -6,12 +6,15 @@ import com.ismolka.validation.utils.metainfo.MetaInfoExtractorUtil;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.*;
 import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
 import org.antlr.v4.runtime.misc.OrderedHashSet;
+import org.hibernate.validator.constraintvalidation.HibernateConstraintValidatorContext;
 
 import java.lang.annotation.Annotation;
 import java.util.*;
+import java.util.stream.Collectors;
 
-public abstract class AbstractDbConstraintsValidator<T extends Annotation, A> extends AbstractEntityManagerConstraintValidator<T, A> implements ConstraintValidator<T, A> {
+public abstract class AbstractDbFieldConstraintsValidator<T extends Annotation, A> extends AbstractEntityManagerConstraintValidator<T, A> implements ConstraintValidator<T, A> {
 
     protected static final String CONSTRAINT_ERROR_FIELDS_PARAM_NAME = "constraintErrorFields";
 
@@ -47,7 +50,31 @@ public abstract class AbstractDbConstraintsValidator<T extends Annotation, A> ex
         return  resultSet;
     }
 
+    protected void fillContextValidator(ConstraintValidatorContext context, Set<Set<FieldPath>> metaInfoConstraintKeys, Object object, List<Object[]> equalityMatrix) {
+        HibernateConstraintValidatorContext constraintValidatorContext = context.unwrap(HibernateConstraintValidatorContext.class);
 
+        int columnIndex = 0;
+
+        for (Set<FieldPath> constraintKey : metaInfoConstraintKeys) {
+            for (Object[] row : equalityMatrix) {
+                Boolean isNotUnique = (Boolean) row[columnIndex];
+
+                if (isNotUnique) {
+                    String fields = constraintKey.stream().map(FieldPath::path).collect(Collectors.joining(", "));
+                    String values = constraintKey.stream().map(fieldMetaInfo -> String.valueOf(fieldMetaInfo.getValueFromObject(object))).collect(Collectors.joining(", "));
+
+                    constraintValidatorContext.addMessageParameter(CONSTRAINT_ERROR_FIELDS_PARAM_NAME, fields);
+                    constraintValidatorContext.addMessageParameter(CONSTRAINT_ERROR_FIELDS_VALUES_PARAM_NAME, values);
+
+                    constraintValidatorContext.buildConstraintViolationWithTemplate(message)
+                            .addConstraintViolation();
+                    break;
+                }
+            }
+
+            columnIndex++;
+        }
+    }
 
     protected Set<Set<FieldPath>> extractConstraintFieldsInfoByAnnotations(Class<?> clazz, ConstraintKey[] constraintKeys) {
         Set<Set<FieldPath>> result = new OrderedHashSet<>();

@@ -1,7 +1,7 @@
 package com.ismolka.validation.constraints;
 
 import com.ismolka.validation.constraints.inner.LimitValidationConstraintGroup;
-import com.ismolka.validation.validator.LimitValidationConstraintValidator;
+import com.ismolka.validation.validator.LimitValidationConstraintValidatorField;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 
@@ -12,7 +12,7 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-@Constraint(validatedBy = LimitValidationConstraintValidator.class)
+@Constraint(validatedBy = LimitValidationConstraintValidatorField.class)
 public @interface LimitValidationConstraints {
 
     String message() default "{com.ismolka.validation.constraints.LimitConstraint.message}";
@@ -22,6 +22,4 @@ public @interface LimitValidationConstraints {
     Class<? extends Payload>[] payload() default { };
 
     LimitValidationConstraintGroup[] limitValueConstraints() default {};
-
-    boolean alsoCheckByUniqueAnnotationWithIgnoringOneMatch() default false;
 }

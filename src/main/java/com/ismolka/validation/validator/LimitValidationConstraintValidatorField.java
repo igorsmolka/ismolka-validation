@@ -1,16 +1,11 @@
 package com.ismolka.validation.validator;
 
 import com.ismolka.validation.constraints.LimitValidationConstraints;
-import com.ismolka.validation.constraints.UniqueValidationConstraints;
 import com.ismolka.validation.constraints.inner.LimitValidationConstraintGroup;
 import com.ismolka.validation.utils.metainfo.FieldPath;
-import com.ismolka.validation.utils.metainfo.MetaInfoExtractorUtil;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
-import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import org.antlr.v4.runtime.misc.OrderedHashSet;
@@ -21,22 +16,17 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-public class LimitValidationConstraintValidator extends AbstractDbConstraintsValidator<LimitValidationConstraints, Object> implements ConstraintValidator<LimitValidationConstraints, Object> {
+public class LimitValidationConstraintValidatorField extends AbstractDbFieldConstraintsValidator<LimitValidationConstraints, Object> implements ConstraintValidator<LimitValidationConstraints, Object> {
 
     private static final Map<Class<?>, LimitMetaInfo> META_INFO = new ConcurrentHashMap<>();
     private static final String LIMIT_VALUE_STR_PARAM_NAME = "limit";
 
-    private static final Integer LIMIT_IF_UNIQUE = 1;
-
     private LimitValidationConstraintGroup[] limitValidationConstraintGroups;
-
-    private boolean alsoCheckUniqueAnnotation;
 
     @Override
     public void initialize(LimitValidationConstraints constraintAnnotation) {
         this.message = constraintAnnotation.message();
         this.limitValidationConstraintGroups = constraintAnnotation.limitValueConstraints();
-        this.alsoCheckUniqueAnnotation = constraintAnnotation.alsoCheckByUniqueAnnotationWithIgnoringOneMatch();
     }
 
 
@@ -63,22 +53,9 @@ public class LimitValidationConstraintValidator extends AbstractDbConstraintsVal
             }
         }
 
-        if (this.alsoCheckUniqueAnnotation && !limitMetaInfo.extractedFromUniqueAnnotationMetaInfo.isEmpty()) {
-            return isValidExcludingId(value, context, limitMetaInfo.extractedFromUniqueAnnotationMetaInfo, limitMetaInfo.classIdFields, em);
-        }
-
         return true;
     }
 
-    private boolean isValidExcludingId(Object value, ConstraintValidatorContext context, Set<Set<FieldPath>> constraintKeys, Set<FieldPath> classIdFields, EntityManager em) {
-        CriteriaQuery<Object[]> criteriaQuery = createCriteriaQuery(value.getClass(), constraintKeys, value, em);
-
-        CriteriaBuilder cb = em.getCriteriaBuilder();
-
-        criteriaQuery.where(cb.and(criteriaQuery.getRestriction(), createPredicateForExcludingId(value, classIdFields, cb, criteriaQuery.getRoots().stream().findFirst().orElse(null))));
-
-        return getValidationResult(criteriaQuery, value, context, constraintKeys, LIMIT_IF_UNIQUE, em);
-    }
 
     private boolean isValid(Object value, ConstraintValidatorContext context, int limit, Set<Set<FieldPath>> constraintKeys, EntityManager em) {
         return getValidationResult(createCriteriaQuery(value.getClass(), constraintKeys, value, em), value, context, constraintKeys, limit, em);
@@ -99,15 +76,6 @@ public class LimitValidationConstraintValidator extends AbstractDbConstraintsVal
         return !isLimitReached;
     }
 
-    private Predicate createPredicateForExcludingId(Object value, Set<FieldPath> classIdFields, CriteriaBuilder cb, Root<?> root) {
-        List<Predicate> predicates = new ArrayList<>();
-        for (FieldPath idField : classIdFields) {
-            Object idValue = idField.getValueFromObject(value);
-            predicates.add(cb.notEqual(asPersistencePath(root, idField), idValue));
-        }
-
-        return cb.and(predicates.toArray(Predicate[]::new));
-    }
 
     protected void fillContextValidator(ConstraintValidatorContext context, Set<Set<FieldPath>> metaInfoConstraintKeys, Object object, List<Object[]> equalityMatrix, int limit) {
         ConstraintValidatorContextImpl constraintValidatorContext = (ConstraintValidatorContextImpl) context;
@@ -142,15 +110,7 @@ public class LimitValidationConstraintValidator extends AbstractDbConstraintsVal
     protected void extractAndCashMetaDataForClass(Class<?> clazz) {
         try {
             Set<LimitValueMetaInfo> limitValueMetaInfo = extractMetaInfoForLimitValidationFields(clazz);
-            Set<Set<FieldPath>> extractedFromUniqueAnnotationMetaInfo = new OrderedHashSet<>();
-
-            if (this.alsoCheckUniqueAnnotation) {
-                if (clazz.isAnnotationPresent(UniqueValidationConstraints.class)) {
-                    extractedFromUniqueAnnotationMetaInfo.addAll(extractConstraintFieldsInfoByAnnotations(clazz, clazz.getAnnotation(UniqueValidationConstraints.class).constraintKeys()));
-                }
-            }
-
-            META_INFO.put(clazz, new LimitMetaInfo(clazz, limitValueMetaInfo, extractedFromUniqueAnnotationMetaInfo, MetaInfoExtractorUtil.extractIdFieldPathsMetaInfo(clazz)));
+            META_INFO.put(clazz, new LimitMetaInfo(clazz, limitValueMetaInfo));
         } catch (Exception exc) {
             throw new RuntimeException(exc);
         }
@@ -167,13 +127,11 @@ public class LimitValidationConstraintValidator extends AbstractDbConstraintsVal
     }
 
     private record LimitMetaInfo(Class<?> clazz,
-                                 Set<LimitValueMetaInfo> limitValueMetaInfo,
-                                 Set<Set<FieldPath>> extractedFromUniqueAnnotationMetaInfo,
-                                 Set<FieldPath> classIdFields
+                                 Set<LimitValueMetaInfo> limitValueMetaInfo
     ) {
 
         public boolean isEmpty() {
-            return limitValueMetaInfo.isEmpty() && extractedFromUniqueAnnotationMetaInfo.isEmpty();
+            return limitValueMetaInfo.isEmpty();
         }
 
         @Override
