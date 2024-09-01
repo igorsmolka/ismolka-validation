@@ -1,6 +1,7 @@
 package com.ismolka.validation.utils.change.collection;
 
 import com.ismolka.validation.utils.change.Difference;
+import com.ismolka.validation.utils.change.value.ValueDifference;
 
 import java.util.Map;
 import java.util.Objects;
@@ -11,7 +12,7 @@ public record CollectionElementDifference<F>(
         F elementFromNewCollection,
         Integer elementFromOldCollectionIndex,
         Integer elementFromNewCollectionIndex
-) {
+) implements Difference {
 
     @Override
     public boolean equals(Object o) {
@@ -24,5 +25,14 @@ public record CollectionElementDifference<F>(
     @Override
     public int hashCode() {
         return Objects.hash(diffBetweenElementsFields, elementFromOldCollection, elementFromNewCollection, elementFromOldCollectionIndex, elementFromNewCollectionIndex);
+    }
+
+    @Override
+    public <TYPE extends Difference> TYPE unwrap(Class<TYPE> type) {
+        if (type.isAssignableFrom(CollectionElementDifference.class)) {
+            return type.cast(this);
+        }
+
+        throw new ClassCastException(String.format("Cannot unwrap CollectionElementDifference to %s", type));
     }
 }

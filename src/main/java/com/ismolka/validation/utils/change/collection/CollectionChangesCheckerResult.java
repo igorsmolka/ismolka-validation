@@ -1,6 +1,8 @@
 package com.ismolka.validation.utils.change.collection;
 
 import com.ismolka.validation.utils.change.CheckerResult;
+import com.ismolka.validation.utils.change.navigator.CheckerResultNavigator;
+import com.ismolka.validation.utils.change.navigator.DefaultCheckerResultNavigator;
 import com.ismolka.validation.utils.constant.CollectionOperation;
 import com.ismolka.validation.utils.change.Difference;
 
@@ -33,5 +35,10 @@ public record CollectionChangesCheckerResult<F>(
         }
 
         throw new ClassCastException(String.format("Cannot unwrap CollectionChangesCheckerResult to %s", type));
+    }
+
+    @Override
+    public CheckerResultNavigator navigator() {
+        return new DefaultCheckerResultNavigator(this);
     }
 }

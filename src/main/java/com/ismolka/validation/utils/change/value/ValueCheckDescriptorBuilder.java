@@ -89,6 +89,10 @@ public class ValueCheckDescriptorBuilder<Q> {
             throw new IllegalArgumentException("Cannot create descriptor without attribute");
         }
 
+        if (ReflectUtil.fieldPathIsNotPresent(attribute, sourceClass)) {
+            throw new IllegalArgumentException(String.format("Field %s is not present in source class %s", attribute, sourceClass));
+        }
+
         if (!CollectionUtils.isEmpty(equalsFields) || changesChecker != null) {
             if (biEqualsMethod != null || equalsMethodReflection != null) {
                 throw new IllegalArgumentException("Cannot set global equals method when equals fields or changes checker are defined");

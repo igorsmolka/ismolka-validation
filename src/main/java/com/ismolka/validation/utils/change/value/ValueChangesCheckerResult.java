@@ -2,6 +2,8 @@ package com.ismolka.validation.utils.change.value;
 
 import com.ismolka.validation.utils.change.CheckerResult;
 import com.ismolka.validation.utils.change.Difference;
+import com.ismolka.validation.utils.change.navigator.CheckerResultNavigator;
+import com.ismolka.validation.utils.change.navigator.DefaultCheckerResultNavigator;
 
 import java.util.Map;
 import java.util.Objects;
@@ -31,5 +33,10 @@ public record ValueChangesCheckerResult(
         }
 
         throw new ClassCastException(String.format("Cannot unwrap AttributeChangesCheckerResult to %s", type));
+    }
+
+    @Override
+    public CheckerResultNavigator navigator() {
+        return new DefaultCheckerResultNavigator(this);
     }
 }

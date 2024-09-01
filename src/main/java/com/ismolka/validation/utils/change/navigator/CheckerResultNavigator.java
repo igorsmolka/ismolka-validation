@@ -1,11 +1,14 @@
 package com.ismolka.validation.utils.change.navigator;
 
 import com.ismolka.validation.utils.change.Difference;
-import com.ismolka.validation.utils.change.value.ValueDifference;
+import com.ismolka.validation.utils.change.collection.CollectionElementDifference;
+import com.ismolka.validation.utils.constant.CollectionOperation;
 
-import java.util.List;
+import java.util.Set;
 
 public interface CheckerResultNavigator {
-    Difference getDifference(String fieldPath);
 
+
+    <T> Set<CollectionElementDifference<T>> getDifferenceForCollection(String fieldPath, Class<T> forClass, CollectionOperation... operations);
+    Difference getDifference(String fieldPath);
 }

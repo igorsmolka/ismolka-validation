@@ -2,6 +2,8 @@ package com.ismolka.validation.utils.change.map;
 
 import com.ismolka.validation.utils.change.CheckerResult;
 import com.ismolka.validation.utils.change.Difference;
+import com.ismolka.validation.utils.change.navigator.CheckerResultNavigator;
+import com.ismolka.validation.utils.change.navigator.DefaultCheckerResultNavigator;
 import com.ismolka.validation.utils.constant.MapOperation;
 
 import java.util.Map;
@@ -38,5 +40,10 @@ public record MapChangesCheckerResult<K, V>(
     @Override
     public int hashCode() {
         return Objects.hash(keyClass, valueClass, mapDifference, equalsResult);
+    }
+
+    @Override
+    public CheckerResultNavigator navigator() {
+        return new DefaultCheckerResultNavigator(this);
     }
 }
