@@ -38,6 +38,6 @@ public record DifferenceRef(
             return type.cast(this);
         }
 
-        throw new ClassCastException(String.format("Cannot unwrap DifferenceHolder to %s", type));
+        throw new ClassCastException(String.format("Cannot unwrap DifferenceRef to %s", type));
     }
 }
