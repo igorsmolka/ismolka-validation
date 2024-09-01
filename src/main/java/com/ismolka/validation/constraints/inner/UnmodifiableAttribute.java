@@ -6,7 +6,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Describes a unmodifiable attribute.
+ * Describes an unmodifiable attribute.
  *
  * @author Ihar Smolka
  */

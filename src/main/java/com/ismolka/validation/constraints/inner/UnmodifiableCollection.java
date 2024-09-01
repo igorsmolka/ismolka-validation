@@ -8,7 +8,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Describes a unmodifiable collection.
+ * Describes an unmodifiable collection.
  *
  * @author Ihar Smolka
  */

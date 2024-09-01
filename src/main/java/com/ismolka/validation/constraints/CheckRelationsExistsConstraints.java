@@ -10,6 +10,11 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * Describes a check for relation existing.
+ *
+ * @author Ihar Smolka
+ */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Constraint(validatedBy = CheckRelationsExistsConstraintsValidator.class)
@@ -21,5 +26,8 @@ public @interface CheckRelationsExistsConstraints {
 
     Class<? extends Payload>[] payload() default { };
 
+    /**
+     * @return constraints for relation existing check.
+     */
     RelationCheckConstraint[] value();
 }

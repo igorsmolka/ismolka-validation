@@ -8,7 +8,6 @@ import org.hibernate.validator.constraintvalidation.HibernateConstraintValidator
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Map;
 import java.util.Set;
@@ -36,7 +35,7 @@ public class ValidationChainValidator implements ConstraintValidator<ValidationC
     public void initialize(ValidationChain constraintAnnotation) {
         this.chainClasses = constraintAnnotation.value();
         this.message = constraintAnnotation.message();
-        this.ignoreMainMessage = constraintAnnotation.ignoreMainMessage();
+        this.ignoreMainMessage = !constraintAnnotation.addMessageToViolations();
     }
 
     @Override
