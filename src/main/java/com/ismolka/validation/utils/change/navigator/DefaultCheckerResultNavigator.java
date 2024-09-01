@@ -5,10 +5,12 @@ import com.ismolka.validation.utils.change.Difference;
 import com.ismolka.validation.utils.change.collection.CollectionChangesCheckerResult;
 import com.ismolka.validation.utils.change.collection.CollectionElementDifference;
 import com.ismolka.validation.utils.change.map.MapChangesCheckerResult;
+import com.ismolka.validation.utils.change.map.MapElementDifference;
 import com.ismolka.validation.utils.change.value.DifferenceRef;
 import com.ismolka.validation.utils.change.value.ValueChangesCheckerResult;
 import com.ismolka.validation.utils.change.value.ValueDifference;
 import com.ismolka.validation.utils.constant.CollectionOperation;
+import com.ismolka.validation.utils.constant.MapOperation;
 import io.micrometer.common.util.StringUtils;
 import org.antlr.v4.runtime.misc.OrderedHashSet;
 import org.aspectj.weaver.ast.Or;
@@ -25,6 +27,53 @@ public class DefaultCheckerResultNavigator implements CheckerResultNavigator {
         this.checkerResult = checkerResult;
     }
 
+
+    @Override
+    public <K, V> Set<MapElementDifference<K, V>> getDifferenceForMap(String fieldPath, Class<K> keyClass, Class<V> valueClass, MapOperation... operations) {
+        if (checkerResult.equalsResult()) {
+            return null;
+        }
+
+        MapOperation[] forOperations;
+
+        if (operations == null || operations.length == 0) {
+            forOperations = MapOperation.values();
+        } else {
+            forOperations = operations;
+        }
+
+        Difference extractedDifference = getDifference(fieldPath, checkerResult);
+
+        if (extractedDifference == null) {
+            return null;
+        }
+
+        if (!MapChangesCheckerResult.class.isAssignableFrom(extractedDifference.getClass())) {
+            throw new IllegalArgumentException("Difference is not a map");
+        }
+
+        MapChangesCheckerResult<?, ?> mapChangesCheckerResult = extractedDifference.unwrap(MapChangesCheckerResult.class);
+
+        if (!mapChangesCheckerResult.keyClass().equals(keyClass)) {
+            throw new IllegalArgumentException(String.format("Expected key class: %s, provided class: %s", keyClass, valueClass));
+        }
+        if (!mapChangesCheckerResult.valueClass().equals(valueClass)) {
+            throw new IllegalArgumentException(String.format("Expected value class: %s, provided class: %s", keyClass, valueClass));
+        }
+
+        MapChangesCheckerResult<K, V> castedMapChangesCheckerResult = (MapChangesCheckerResult<K, V>) mapChangesCheckerResult;
+        Set<MapElementDifference<K, V>> resultSet = new OrderedHashSet<>();
+
+        for (MapOperation operation : forOperations) {
+            Set<MapElementDifference<K, V>> extractedMapDifferenceSet = castedMapChangesCheckerResult.mapDifference().get(operation);
+
+            if (extractedMapDifferenceSet != null) {
+                resultSet.addAll(extractedMapDifferenceSet);
+            }
+        }
+
+        return resultSet;
+    }
 
     @Override
     public <T> Set<CollectionElementDifference<T>> getDifferenceForCollection(String fieldPath, Class<T> forClass, CollectionOperation... operations) {
@@ -76,6 +125,25 @@ public class DefaultCheckerResultNavigator implements CheckerResultNavigator {
         }
 
         return getDifference(fieldPath, checkerResult);
+    }
+
+    @Override
+    public Difference getDifference() {
+        if (checkerResult.equalsResult()) {
+            return null;
+        }
+
+        return getDifference(null, checkerResult);
+    }
+
+    @Override
+    public <T> Set<CollectionElementDifference<T>> getDifferenceForCollection(Class<T> forClass, CollectionOperation... operations) {
+        return getDifferenceForCollection(null, forClass, operations);
+    }
+
+    @Override
+    public <K, V> Set<MapElementDifference<K, V>> getDifferenceForMap(Class<K> keyClass, Class<V> valueClass, MapOperation... operations) {
+        return getDifferenceForMap(null, keyClass, valueClass, operations);
     }
 
 
@@ -153,10 +221,6 @@ public class DefaultCheckerResultNavigator implements CheckerResultNavigator {
         if (ValueChangesCheckerResult.class.isAssignableFrom(diffClass)) {
             return difference.unwrap(ValueChangesCheckerResult.class).differenceMap().get(null);
         }
-
-//        if (ValueDifference.class.isAssignableFrom(diffClass) || CollectionChangesCheckerResult.class.isAssignableFrom(diffClass) || MapChangesCheckerResult.class.isAssignableFrom(diffClass)) {
-//            return difference;
-//        }
 
         if (DifferenceRef.class.isAssignableFrom(diffClass)) {
             throw new RuntimeException("Cannot extract result: unexpected reference");
