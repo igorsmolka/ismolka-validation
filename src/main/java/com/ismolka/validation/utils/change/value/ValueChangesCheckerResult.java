@@ -32,7 +32,7 @@ public record ValueChangesCheckerResult(
             return type.cast(this);
         }
 
-        throw new ClassCastException(String.format("Cannot unwrap AttributeChangesCheckerResult to %s", type));
+        throw new ClassCastException(String.format("Cannot unwrap ValueChangesCheckerResult to %s", type));
     }
 
     @Override

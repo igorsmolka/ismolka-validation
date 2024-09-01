@@ -26,7 +26,7 @@ public record MapChangesCheckerResult<K, V>(
             return type.cast(this);
         }
 
-        throw new ClassCastException(String.format("Cannot unwrap AttributeDifference to %s", type));
+        throw new ClassCastException(String.format("Cannot unwrap MapChangesCheckerResult to %s", type));
     }
 
     @Override

@@ -21,7 +21,7 @@ public record MapElementDifference<K, V>(
             return type.cast(this);
         }
 
-        throw new ClassCastException(String.format("Cannot unwrap AttributeDifference to %s", type));
+        throw new ClassCastException(String.format("Cannot unwrap MapElementDifference to %s", type));
     }
 
     @Override
