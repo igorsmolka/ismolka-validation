@@ -10,6 +10,19 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+/**
+ * Result for check two maps.
+ * @see MapElementDifference
+ *
+ * @param keyClass - key class
+ * @param valueClass - value class
+ * @param mapDifference - map difference
+ * @param equalsResult - equals result
+ * @param <K> - key type
+ * @param <V> - value type
+ *
+ * @author Ihar Smolka
+ */
 public record MapChangesCheckerResult<K, V>(
         Class<K> keyClass,
 

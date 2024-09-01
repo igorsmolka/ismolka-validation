@@ -4,6 +4,15 @@ import com.ismolka.validation.utils.change.Difference;
 
 import java.util.Objects;
 
+/**
+ * Reference to difference.
+ * @see Difference
+ *
+ * @param onField - reference for attribute
+ * @param toDifference - {@link Difference}
+ *
+ * @author Ihar Smolka
+ */
 public record DifferenceRef(
         String onField,
         Difference toDifference

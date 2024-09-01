@@ -5,6 +5,18 @@ import com.ismolka.validation.utils.change.Difference;
 import java.util.Map;
 import java.util.Objects;
 
+/**
+ * Difference between two elements of {@link Map}.
+ *
+ * @param diffBetweenElementsFields - difference between elements
+ * @param elementFromOldMap - element from the old map
+ * @param elementFromNewMap - element from tht new map
+ * @param key - map key with difference
+ * @param <K> - key type
+ * @param <V> - value type
+ *
+ * @author Ihar Smolka
+ */
 public record MapElementDifference<K, V>(
         Map<String, Difference> diffBetweenElementsFields,
 

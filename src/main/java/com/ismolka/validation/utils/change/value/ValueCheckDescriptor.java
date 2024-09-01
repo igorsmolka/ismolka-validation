@@ -8,6 +8,18 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiPredicate;
 
+/**
+ * Describes the check settings for attribute.
+ *
+ * @param attribute - attribute for checking.
+ * @param equalsFields - fields for equals checking .
+ * @param equalsMethodReflection - custom equals {@link Method} (doesn't make sense, when equalsFields is specified).
+ * @param biEqualsMethod - custom equals method with two arguments (doesn't make sense, when equalsFields is specified).
+ * @param changesChecker - {@link ChangesChecker} for checking (doesn't make sense, when equalsMethodReflection or biEqualsMethod is specified.
+ * @param <Q> - value type
+ *
+ * @author Ihar Smolka
+ */
 public record ValueCheckDescriptor<Q>(
         FieldPath attribute,
 

@@ -11,6 +11,12 @@ import java.lang.reflect.Method;
 import java.util.Set;
 import java.util.function.BiPredicate;
 
+/**
+ * Builder for {@link ValueCheckDescriptor}.
+ * @see ValueCheckDescriptor
+ *
+ * @param <Q> - value type
+ */
 public class ValueCheckDescriptorBuilder<Q> {
 
     Class<?> sourceClass;
@@ -27,6 +33,14 @@ public class ValueCheckDescriptorBuilder<Q> {
 
     ChangesChecker<Q> changesChecker;
 
+    /**
+     * Static method for builder instantiation
+     *
+     * @param sourceClass - a class, in which the attribute is defined.
+     * @param targetClass - class of the attribute
+     * @return builder
+     * @param <X> - attribute type
+     */
     public static <X> ValueCheckDescriptorBuilder<X> builder(Class<?> sourceClass, Class<X> targetClass) {
         return new ValueCheckDescriptorBuilder<>(sourceClass, targetClass);
     }
@@ -36,12 +50,24 @@ public class ValueCheckDescriptorBuilder<Q> {
         this.targetClass = targetClass;
     }
 
+    /**
+     * Attribute path
+     *
+     * @param attribute - attribute
+     * @return this
+     */
     public ValueCheckDescriptorBuilder<Q> attribute(String attribute) {
         this.attribute = attribute;
 
         return this;
     }
 
+    /**
+     * Equals field
+     *
+     * @param fieldForEqualsPath - field for equals
+     * @return this
+     */
     public ValueCheckDescriptorBuilder<Q> addEqualsField(String fieldForEqualsPath) {
         if (equalsFields == null) {
             equalsFields = new OrderedHashSet<>();
@@ -52,18 +78,36 @@ public class ValueCheckDescriptorBuilder<Q> {
         return this;
     }
 
+    /**
+     * Equals method
+     *
+     * @param equalsMethod - {@link Method}
+     * @return this
+     */
     public ValueCheckDescriptorBuilder<Q> equalsMethodReflection(Method equalsMethod) {
         this.equalsMethodReflection = equalsMethod;
 
         return this;
     }
 
+    /**
+     * Equals method with two arguments
+     *
+     * @param biEqualsMethod - {@link BiPredicate}
+     * @return this
+     */
     public ValueCheckDescriptorBuilder<Q> biEqualsMethod(BiPredicate<Q, Q> biEqualsMethod) {
         this.biEqualsMethod = biEqualsMethod;
 
         return this;
     }
 
+    /**
+     * Changes checker
+     *
+     * @param changesChecker - {@link ChangesChecker}
+     * @return this
+     */
     public ValueCheckDescriptorBuilder<Q> changesChecker(ChangesChecker<Q> changesChecker) {
         this.changesChecker = changesChecker;
 

@@ -4,6 +4,19 @@ import com.ismolka.validation.utils.change.Difference;
 
 import java.util.Objects;
 
+/**
+ * Difference between two values.
+ *
+ * @param valueFieldPath - attribute path from the root class.
+ * @param valueFieldRootClass - attribute root class.
+ * @param valueFieldDeclaringClass - attribute declaring class.
+ * @param valueClass - value class.
+ * @param oldValue - old value.
+ * @param newValue - new value.
+ * @param <F> - value type.
+ *
+ * @author Ihar Smolka
+ */
 public record ValueDifference<F>(String valueFieldPath,
                                     Class<?> valueFieldRootClass,
 

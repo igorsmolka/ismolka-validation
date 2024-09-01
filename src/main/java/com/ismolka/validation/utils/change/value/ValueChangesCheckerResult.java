@@ -8,6 +8,14 @@ import com.ismolka.validation.utils.change.navigator.DefaultCheckerResultNavigat
 import java.util.Map;
 import java.util.Objects;
 
+/**
+ * Result for check two objects.
+ * @see com.ismolka.validation.utils.change.ChangesChecker
+ *
+ * @param differenceMap - difference map
+ * @param equalsResult - equals result
+ * @author Ihar Smolka
+ */
 public record ValueChangesCheckerResult(
         Map<String, Difference> differenceMap,
         boolean equalsResult
