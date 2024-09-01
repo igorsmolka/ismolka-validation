@@ -3,6 +3,7 @@ package com.ismolka.validation.validator;
 import com.ismolka.validation.constraints.inner.ConstraintKey;
 import com.ismolka.validation.utils.metainfo.FieldPath;
 import com.ismolka.validation.utils.metainfo.MetaInfoExtractorUtil;
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.*;
 import jakarta.validation.ConstraintValidator;
 import org.antlr.v4.runtime.misc.OrderedHashSet;
@@ -16,7 +17,7 @@ public abstract class AbstractDbConstraintsValidator<T extends Annotation, A> ex
 
     protected static final String CONSTRAINT_ERROR_FIELDS_VALUES_PARAM_NAME = "constraintErrorFieldsValues";
 
-    protected CriteriaQuery<Object[]> createCriteriaQuery(Class<?> clazz, Set<Set<FieldPath>> metaInfoConstraintKeys, Object object) {
+    protected CriteriaQuery<Object[]> createCriteriaQuery(Class<?> clazz, Set<Set<FieldPath>> metaInfoConstraintKeys, Object object, EntityManager em) {
         CriteriaBuilder cb = em.getCriteriaBuilder();
 
         CriteriaQuery<Object[]> criteriaQuery = cb.createQuery(Object[].class);

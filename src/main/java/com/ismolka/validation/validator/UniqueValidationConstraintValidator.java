@@ -3,6 +3,7 @@ package com.ismolka.validation.validator;
 import com.ismolka.validation.constraints.UniqueValidationConstraints;
 import com.ismolka.validation.constraints.inner.ConstraintKey;
 import com.ismolka.validation.utils.metainfo.FieldPath;
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
@@ -29,7 +30,7 @@ public class UniqueValidationConstraintValidator extends AbstractDbConstraintsVa
 
     @Override
     @Transactional(readOnly = true)
-    public boolean isValid(Object value, ConstraintValidatorContext context) {
+    public boolean isValid(Object value, ConstraintValidatorContext context, EntityManager em) {
         Class<?> clazz = value.getClass();
 
         if (!META_INFO.containsKey(clazz)) {
@@ -38,7 +39,7 @@ public class UniqueValidationConstraintValidator extends AbstractDbConstraintsVa
 
         Set<Set<FieldPath>> metaInfoConstraintKeys = META_INFO.get(clazz);
 
-        TypedQuery<Object[]> query = em.createQuery(createCriteriaQuery(clazz, metaInfoConstraintKeys, value));
+        TypedQuery<Object[]> query = em.createQuery(createCriteriaQuery(clazz, metaInfoConstraintKeys, value, em));
         query.setMaxResults(MAX_RESULTS);
 
         List<Object[]> resultList = query.getResultList();

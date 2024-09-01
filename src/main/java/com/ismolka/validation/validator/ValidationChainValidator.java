@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class ValidationChainValidator extends AbstractDbConstraintsValidator<ValidationChain, Object> implements ConstraintValidator<ValidationChain, Object>, ApplicationContextAware {
+public class ValidationChainValidator implements ConstraintValidator<ValidationChain, Object>, ApplicationContextAware {
 
     private static final Map<Class<?>, Set<ValidationChainElement<?>>> META_INFO = new ConcurrentHashMap<>();
 
@@ -28,6 +28,8 @@ public class ValidationChainValidator extends AbstractDbConstraintsValidator<Val
 
     private ApplicationContext applicationContext;
 
+    private String message;
+
     @Override
     public void initialize(ValidationChain constraintAnnotation) {
         this.chainClasses = constraintAnnotation.value();
@@ -35,7 +37,6 @@ public class ValidationChainValidator extends AbstractDbConstraintsValidator<Val
     }
 
     @Override
-    @Transactional(readOnly = true)
     public boolean isValid(Object value, ConstraintValidatorContext context) {
         Class<?> clazz = value.getClass();
 
@@ -53,7 +54,6 @@ public class ValidationChainValidator extends AbstractDbConstraintsValidator<Val
         this.applicationContext = applicationContext;
     }
 
-    @Override
     protected void extractAndCashMetaDataForClass(Class<?> clazz) {
         Set<ValidationChainElement<?>> validationChainElements = new OrderedHashSet<>();
         for (Class<? extends ValidationChainElement<?>> validationChainElementClass : chainClasses) {

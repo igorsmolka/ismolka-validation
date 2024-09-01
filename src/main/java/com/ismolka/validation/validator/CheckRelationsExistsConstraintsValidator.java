@@ -5,6 +5,7 @@ import com.ismolka.validation.constraints.inner.RelationCheckConstraint;
 import com.ismolka.validation.constraints.inner.RelationCheckConstraintFieldMapping;
 import com.ismolka.validation.utils.metainfo.FieldPath;
 import com.ismolka.validation.utils.metainfo.MetaInfoExtractorUtil;
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.*;
 import jakarta.validation.ConstraintValidator;
@@ -39,7 +40,7 @@ public class CheckRelationsExistsConstraintsValidator extends AbstractEntityMana
 
     @Override
     @Transactional(readOnly = true)
-    public boolean isValid(Object value, ConstraintValidatorContext context) {
+    public boolean isValid(Object value, ConstraintValidatorContext context, EntityManager em) {
         Class<?> clazz = value.getClass();
 
         if (!META_INFO.containsKey(clazz)) {
@@ -48,7 +49,7 @@ public class CheckRelationsExistsConstraintsValidator extends AbstractEntityMana
 
         CheckRelationsMetaInfo checkRelationsMetaInfo = META_INFO.get(clazz);
 
-        TypedQuery<Object[]> query = em.createQuery(createCriteriaQuery(checkRelationsMetaInfo, value));
+        TypedQuery<Object[]> query = em.createQuery(createCriteriaQuery(checkRelationsMetaInfo, value, em));
         query.setMaxResults(LIMIT);
 
         List<Object[]> resultList = query.getResultList();
@@ -149,7 +150,7 @@ public class CheckRelationsExistsConstraintsValidator extends AbstractEntityMana
         META_INFO.put(clazz, new CheckRelationsMetaInfo(checkRelationMetaInfo));
     }
 
-    private CriteriaQuery<Object[]> createCriteriaQuery(CheckRelationsMetaInfo checkRelationsMetaInfo, Object object) {
+    private CriteriaQuery<Object[]> createCriteriaQuery(CheckRelationsMetaInfo checkRelationsMetaInfo, Object object, EntityManager em) {
         CriteriaBuilder cb = em.getCriteriaBuilder();
 
         CriteriaQuery<Object[]> criteriaQuery = cb.createQuery(Object[].class);

@@ -16,6 +16,7 @@ import com.ismolka.validation.utils.metainfo.FieldPath;
 import com.ismolka.validation.validator.utils.HibernateConstraintValidationUtils;
 import com.ismolka.validation.utils.metainfo.MetaInfoExtractorUtil;
 import jakarta.persistence.EntityGraph;
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
@@ -74,8 +75,7 @@ public class CheckExistingByConstraintAndUnmodifiableAttributesValidator extends
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public boolean isValid(Object value, ConstraintValidatorContext context) {
+    public boolean isValid(Object value, ConstraintValidatorContext context, EntityManager em) {
         Class<?> clazz = value.getClass();
 
         if (!META_INFO.containsKey(clazz)) {
@@ -86,7 +86,7 @@ public class CheckExistingByConstraintAndUnmodifiableAttributesValidator extends
 
         Set<FieldPath> constraintKey = checkExistingMetaInfo.existingConstraint();
 
-        CriteriaQuery<Object> criteriaQuery = createCriteriaQuery(clazz, constraintKey, value);
+        CriteriaQuery<Object> criteriaQuery = createCriteriaQuery(clazz, constraintKey, value, em);
 
         TypedQuery<Object> query = em.createQuery(criteriaQuery);
         query.setMaxResults(MAX_RESULT);
@@ -216,7 +216,7 @@ public class CheckExistingByConstraintAndUnmodifiableAttributesValidator extends
         HibernateConstraintValidationUtils.fieldNameBatchesConstraintViolationBuild(constraintValidatorContext, constraintKey, object, DOESNT_EXIST_FIELDS_PARAM_NAME, DOESNT_EXIST_FIELD_VALUES_PARAM_NAME, message);
     }
 
-    protected CriteriaQuery<Object> createCriteriaQuery(Class<?> clazz, Set<FieldPath> constraintKey, Object object) {
+    protected CriteriaQuery<Object> createCriteriaQuery(Class<?> clazz, Set<FieldPath> constraintKey, Object object, EntityManager em) {
         CriteriaBuilder cb = em.getCriteriaBuilder();
 
         CriteriaQuery<Object> criteriaQuery = cb.createQuery(Object.class);

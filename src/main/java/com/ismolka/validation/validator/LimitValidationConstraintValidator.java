@@ -5,6 +5,7 @@ import com.ismolka.validation.constraints.UniqueValidationConstraints;
 import com.ismolka.validation.constraints.inner.LimitValidationConstraintGroup;
 import com.ismolka.validation.utils.metainfo.FieldPath;
 import com.ismolka.validation.utils.metainfo.MetaInfoExtractorUtil;
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
@@ -41,7 +42,7 @@ public class LimitValidationConstraintValidator extends AbstractDbConstraintsVal
 
     @Override
     @Transactional(readOnly = true)
-    public boolean isValid(Object value, ConstraintValidatorContext context) {
+    public boolean isValid(Object value, ConstraintValidatorContext context, EntityManager em) {
         Class<?> clazz = value.getClass();
 
         if (!META_INFO.containsKey(clazz)) {
@@ -55,7 +56,7 @@ public class LimitValidationConstraintValidator extends AbstractDbConstraintsVal
         }
 
         for (LimitValueMetaInfo limitValueMetaInfo : limitMetaInfo.limitValueMetaInfo()) {
-            boolean isValid = isValid(value, context, limitValueMetaInfo.limit(), limitValueMetaInfo.constraintKeys());
+            boolean isValid = isValid(value, context, limitValueMetaInfo.limit(), limitValueMetaInfo.constraintKeys(), em);
 
             if (!isValid) {
                 return false;
@@ -63,27 +64,27 @@ public class LimitValidationConstraintValidator extends AbstractDbConstraintsVal
         }
 
         if (this.alsoCheckUniqueAnnotation && !limitMetaInfo.extractedFromUniqueAnnotationMetaInfo.isEmpty()) {
-            return isValidExcludingId(value, context, limitMetaInfo.extractedFromUniqueAnnotationMetaInfo, limitMetaInfo.classIdFields);
+            return isValidExcludingId(value, context, limitMetaInfo.extractedFromUniqueAnnotationMetaInfo, limitMetaInfo.classIdFields, em);
         }
 
         return true;
     }
 
-    private boolean isValidExcludingId(Object value, ConstraintValidatorContext context, Set<Set<FieldPath>> constraintKeys, Set<FieldPath> classIdFields) {
-        CriteriaQuery<Object[]> criteriaQuery = createCriteriaQuery(value.getClass(), constraintKeys, value);
+    private boolean isValidExcludingId(Object value, ConstraintValidatorContext context, Set<Set<FieldPath>> constraintKeys, Set<FieldPath> classIdFields, EntityManager em) {
+        CriteriaQuery<Object[]> criteriaQuery = createCriteriaQuery(value.getClass(), constraintKeys, value, em);
 
         CriteriaBuilder cb = em.getCriteriaBuilder();
 
         criteriaQuery.where(cb.and(criteriaQuery.getRestriction(), createPredicateForExcludingId(value, classIdFields, cb, criteriaQuery.getRoots().stream().findFirst().orElse(null))));
 
-        return getValidationResult(criteriaQuery, value, context, constraintKeys, LIMIT_IF_UNIQUE);
+        return getValidationResult(criteriaQuery, value, context, constraintKeys, LIMIT_IF_UNIQUE, em);
     }
 
-    private boolean isValid(Object value, ConstraintValidatorContext context, int limit, Set<Set<FieldPath>> constraintKeys) {
-        return getValidationResult(createCriteriaQuery(value.getClass(), constraintKeys, value), value, context, constraintKeys, limit);
+    private boolean isValid(Object value, ConstraintValidatorContext context, int limit, Set<Set<FieldPath>> constraintKeys, EntityManager em) {
+        return getValidationResult(createCriteriaQuery(value.getClass(), constraintKeys, value, em), value, context, constraintKeys, limit, em);
     }
 
-    private boolean getValidationResult(CriteriaQuery<Object[]> criteriaQuery, Object value, ConstraintValidatorContext context, Set<Set<FieldPath>> constraintKeys, Integer limitIfUnique) {
+    private boolean getValidationResult(CriteriaQuery<Object[]> criteriaQuery, Object value, ConstraintValidatorContext context, Set<Set<FieldPath>> constraintKeys, Integer limitIfUnique, EntityManager em) {
         TypedQuery<Object[]> query = em.createQuery(criteriaQuery);
         query.setMaxResults(limitIfUnique);
 
