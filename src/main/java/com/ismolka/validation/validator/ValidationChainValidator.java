@@ -28,12 +28,15 @@ public class ValidationChainValidator implements ConstraintValidator<ValidationC
 
     private ApplicationContext applicationContext;
 
+    private boolean ignoreMainMessage;
+
     private String message;
 
     @Override
     public void initialize(ValidationChain constraintAnnotation) {
         this.chainClasses = constraintAnnotation.value();
         this.message = constraintAnnotation.message();
+        this.ignoreMainMessage = constraintAnnotation.ignoreMainMessage();
     }
 
     @Override
@@ -78,11 +81,14 @@ public class ValidationChainValidator implements ConstraintValidator<ValidationC
             boolean result = validationChainElement.isValid(value, context);
 
             if (!result) {
-                constraintValidatorContext.addMessageParameter(VALIDATION_CHAIN_CLASS_PARAM_NAME, validationChainElement.getClass().getName())
-                        .addMessageParameter(VALIDATION_CHAIN_OBJECT_CLASS_PARAM_NAME, value.getClass().getName())
-                        .addMessageParameter(VALIDATION_CHAIN_OBJECT_PARAM_NAME, value);
+                if (!ignoreMainMessage) {
+                    constraintValidatorContext.addMessageParameter(VALIDATION_CHAIN_CLASS_PARAM_NAME, validationChainElement.getClass().getName())
+                            .addMessageParameter(VALIDATION_CHAIN_OBJECT_CLASS_PARAM_NAME, value.getClass().getName())
+                            .addMessageParameter(VALIDATION_CHAIN_OBJECT_PARAM_NAME, value);
 
-                constraintValidatorContext.buildConstraintViolationWithTemplate(message).addConstraintViolation();
+                    constraintValidatorContext.buildConstraintViolationWithTemplate(message).addConstraintViolation();
+                }
+
                 return false;
             }
         }

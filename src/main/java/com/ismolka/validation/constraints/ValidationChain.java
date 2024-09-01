@@ -22,4 +22,6 @@ public @interface ValidationChain {
     Class<? extends Payload>[] payload() default { };
 
     Class<? extends ValidationChainElement<?>>[] value() default {};
+
+    boolean ignoreMainMessage() default false;
 }
