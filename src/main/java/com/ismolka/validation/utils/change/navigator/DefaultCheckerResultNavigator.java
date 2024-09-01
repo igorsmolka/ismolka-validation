@@ -13,7 +13,6 @@ import com.ismolka.validation.utils.constant.CollectionOperation;
 import com.ismolka.validation.utils.constant.MapOperation;
 import io.micrometer.common.util.StringUtils;
 import org.antlr.v4.runtime.misc.OrderedHashSet;
-import org.aspectj.weaver.ast.Or;
 
 import java.util.Map;
 import java.util.Objects;
