@@ -14,6 +14,12 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.function.BiPredicate;
 
+/**
+ * Builder for {@link DefaultMapChangesChecker}
+ *
+ * @param <K> - key type
+ * @param <V> - value type
+ */
 public class DefaultMapChangesCheckerBuilder<K, V> {
 
     Class<K> keyClass;
@@ -33,6 +39,15 @@ public class DefaultMapChangesCheckerBuilder<K, V> {
     Set<String> globalEqualsFields;
 
 
+    /**
+     * Static method for builder instantiation.
+     *
+     * @param keyClass - key class
+     * @param valueClass - value class
+     * @return builder
+     * @param <K> - key type
+     * @param <V> - value type
+     */
     public static <K, V> DefaultMapChangesCheckerBuilder<K, V> builder(Class<K> keyClass, Class<V> valueClass) {
         return new DefaultMapChangesCheckerBuilder<>(keyClass, valueClass);
     }
@@ -42,6 +57,12 @@ public class DefaultMapChangesCheckerBuilder<K, V> {
         this.valueClass = valueClass;
     }
 
+    /**
+     * {@link ValueCheckDescriptor} for attribute check.
+     *
+     * @param attribute - descriptor
+     * @return this
+     */
     public DefaultMapChangesCheckerBuilder<K, V> addAttributeToCheck(ValueCheckDescriptor<?> attribute) {
         if (attributesCheckDescriptors == null) {
             attributesCheckDescriptors = new OrderedHashSet<>();
@@ -52,24 +73,46 @@ public class DefaultMapChangesCheckerBuilder<K, V> {
         return this;
     }
 
+    /**
+     * Flag to stop finding on first diff
+     * @return this
+     */
     public DefaultMapChangesCheckerBuilder<K, V> stopOnFirstDiff() {
         this.stopOnFirstDiff = true;
 
         return this;
     }
 
+    /**
+     * Equals method
+     *
+     * @param globalEqualsMethodReflectionRef - {@link Method}
+     * @return this
+     */
     public DefaultMapChangesCheckerBuilder<K, V> globalEqualsMethodReflection(Method globalEqualsMethodReflectionRef) {
         this.globalEqualsMethodReflection = globalEqualsMethodReflectionRef;
 
         return this;
     }
 
+    /**
+     * Equals method with two arguments
+     *
+     * @param globalBiEqualsMethodCodeRef - {@link BiPredicate}
+     * @return this
+     */
     public DefaultMapChangesCheckerBuilder<K, V> globalBiEqualsMethod(BiPredicate<V, V> globalBiEqualsMethodCodeRef) {
         this.globalBiEqualsMethod = globalBiEqualsMethodCodeRef;
 
         return this;
     }
 
+    /**
+     * Equals field
+     *
+     * @param globalEqualsField - field for equals
+     * @return this
+     */
     public DefaultMapChangesCheckerBuilder<K, V> addGlobalEqualsField(String globalEqualsField) {
         if (globalEqualsFields == null) {
             globalEqualsFields = new OrderedHashSet<>();
@@ -80,6 +123,12 @@ public class DefaultMapChangesCheckerBuilder<K, V> {
         return this;
     }
 
+    /**
+     * Check for {@link MapOperation}
+     *
+     * @param operation - {@link MapOperation}
+     * @return this
+     */
     public DefaultMapChangesCheckerBuilder<K, V> forOperation(MapOperation operation) {
         if (forOperations == null) {
             forOperations = new HashSet<>();
@@ -90,6 +139,12 @@ public class DefaultMapChangesCheckerBuilder<K, V> {
         return this;
     }
 
+    /**
+     * Check for {@link MapOperation}
+     *
+     * @param operations - {@link MapOperation}
+     * @return this
+     */
     public DefaultMapChangesCheckerBuilder<K, V> forOperations(MapOperation... operations) {
         if (forOperations == null) {
             forOperations = new HashSet<>();

@@ -14,6 +14,13 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.function.BiPredicate;
 
+/**
+ * Builder for {@link DefaultCollectionChangesChecker}
+ *
+ * @param <T> - type of collection elements.
+ *
+ * @author Ihar Smolka
+ */
 public class DefaultCollectionChangesCheckerBuilder<T> {
 
     Class<T> collectionGenericClass;
@@ -32,6 +39,14 @@ public class DefaultCollectionChangesCheckerBuilder<T> {
 
     Set<String> globalEqualsFields;
 
+
+    /**
+     * Static method for builder instantiation.
+     *
+     * @param collectionGenericClass - class of collection elements.
+     * @return builder
+     * @param <T> - type of collection elements.
+     */
     public static <T> DefaultCollectionChangesCheckerBuilder<T> builder(Class<T> collectionGenericClass) {
         return new DefaultCollectionChangesCheckerBuilder<>(collectionGenericClass);
     }
@@ -41,6 +56,12 @@ public class DefaultCollectionChangesCheckerBuilder<T> {
         this.collectionGenericClass = collectionGenericClass;
     }
 
+    /**
+     * {@link ValueCheckDescriptor} for attribute check.
+     *
+     * @param attribute - descriptor
+     * @return this
+     */
     public DefaultCollectionChangesCheckerBuilder<T> addAttributeToCheck(ValueCheckDescriptor<?> attribute) {
         if (attributesCheckDescriptors == null) {
             attributesCheckDescriptors = new OrderedHashSet<>();
@@ -51,24 +72,46 @@ public class DefaultCollectionChangesCheckerBuilder<T> {
         return this;
     }
 
+    /**
+     * Flag to stop finding on first diff
+     * @return this
+     */
     public DefaultCollectionChangesCheckerBuilder<T> stopOnFirstDiff() {
         this.stopOnFirstDiff = true;
 
         return this;
     }
 
+    /**
+     * Equals method
+     *
+     * @param globalEqualsMethodReflectionRef - {@link Method}
+     * @return this
+     */
     public DefaultCollectionChangesCheckerBuilder<T> globalEqualsMethodReflection(Method globalEqualsMethodReflectionRef) {
         this.globalEqualsMethodReflection = globalEqualsMethodReflectionRef;
 
         return this;
     }
 
+    /**
+     * Equals method with two arguments
+     *
+     * @param globalBiEqualsMethodCodeRef - {@link BiPredicate}
+     * @return this
+     */
     public DefaultCollectionChangesCheckerBuilder<T> globalBiEqualsMethodCode(BiPredicate<T, T> globalBiEqualsMethodCodeRef) {
         this.globalBiEqualsMethod = globalBiEqualsMethodCodeRef;
 
         return this;
     }
 
+    /**
+     * Equals field
+     *
+     * @param globalEqualsField - field for equals
+     * @return this
+     */
     public DefaultCollectionChangesCheckerBuilder<T> addGlobalEqualsField(String globalEqualsField) {
         if (globalEqualsFields == null) {
             globalEqualsFields = new OrderedHashSet<>();
@@ -79,6 +122,12 @@ public class DefaultCollectionChangesCheckerBuilder<T> {
         return this;
     }
 
+    /**
+     * Fields for matching elements within a collection (if specified and fields are equal between elements of two collections - then validator will check the elements for equality. If is not specified - then indexes in the collections will be used as a 'key')
+     *
+     * @param fieldForMatching - field for matching
+     * @return this
+     */
     public DefaultCollectionChangesCheckerBuilder<T> addFieldForMatching(String fieldForMatching) {
         if (fieldsForMatching == null) {
             fieldsForMatching = new OrderedHashSet<>();
@@ -89,6 +138,12 @@ public class DefaultCollectionChangesCheckerBuilder<T> {
         return this;
     }
 
+    /**
+     * Check for {@link CollectionOperation}
+     *
+     * @param operation - {@link CollectionOperation}
+     * @return this
+     */
     public DefaultCollectionChangesCheckerBuilder<T> forOperation(CollectionOperation operation) {
         if (forOperations == null) {
             forOperations = new HashSet<>();
@@ -99,6 +154,12 @@ public class DefaultCollectionChangesCheckerBuilder<T> {
         return this;
     }
 
+    /**
+     * Check for {@link CollectionOperation}
+     *
+     * @param operations - {@link CollectionOperation}
+     * @return this
+     */
     public DefaultCollectionChangesCheckerBuilder<T> forOperations(CollectionOperation... operations) {
         if (forOperations == null) {
             forOperations = new HashSet<>();

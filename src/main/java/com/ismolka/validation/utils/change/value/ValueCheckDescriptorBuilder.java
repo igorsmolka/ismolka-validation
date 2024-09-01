@@ -16,6 +16,7 @@ import java.util.function.BiPredicate;
  * @see ValueCheckDescriptor
  *
  * @param <Q> - value type
+ * @author Ihar Smolka
  */
 public class ValueCheckDescriptorBuilder<Q> {
 
@@ -34,7 +35,7 @@ public class ValueCheckDescriptorBuilder<Q> {
     ChangesChecker<Q> changesChecker;
 
     /**
-     * Static method for builder instantiation
+     * Static method for builder instantiation.
      *
      * @param sourceClass - a class, in which the attribute is defined.
      * @param targetClass - class of the attribute

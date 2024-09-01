@@ -10,6 +10,13 @@ import java.lang.reflect.Method;
 import java.util.Set;
 import java.util.function.BiPredicate;
 
+/**
+ * Builder for {@link ValueCheckDescriptor}.
+ * @see DefaultValueChangesChecker
+ *
+ * @param <T> - value type
+ * @author Ihar Smolka
+ */
 public class DefaultValueChangesCheckerBuilder<T> {
 
     Class<T> targetClass;
@@ -24,6 +31,13 @@ public class DefaultValueChangesCheckerBuilder<T> {
 
     Set<String> globalEqualsFields;
 
+    /**
+     * Static method for builder instantiation.
+     *
+     * @param clazz - class of the attribute
+     * @return builder
+     * @param <T> - value type
+     */
     public static <T> DefaultValueChangesCheckerBuilder<T> builder(Class<T> clazz) {
         return new DefaultValueChangesCheckerBuilder<>(clazz);
     }
@@ -32,6 +46,12 @@ public class DefaultValueChangesCheckerBuilder<T> {
         this.targetClass = targetClass;
     }
 
+    /**
+     * {@link ValueCheckDescriptor} for attribute check.
+     *
+     * @param attribute - descriptor
+     * @return this
+     */
     public DefaultValueChangesCheckerBuilder<T> addAttributeToCheck(ValueCheckDescriptor<?> attribute) {
         if (attributesCheckDescriptors == null) {
             attributesCheckDescriptors = new OrderedHashSet<>();
@@ -42,24 +62,46 @@ public class DefaultValueChangesCheckerBuilder<T> {
         return this;
     }
 
+    /**
+     * Flag to stop finding on first diff
+     * @return this
+     */
     public DefaultValueChangesCheckerBuilder<T> stopOnFirstDiff() {
         this.stopOnFirstDiff = true;
 
         return this;
     }
 
+    /**
+     * Equals method
+     *
+     * @param globalEqualsMethodReflectionRef - {@link Method}
+     * @return this
+     */
     public DefaultValueChangesCheckerBuilder<T> globalEqualsMethodReflection(Method globalEqualsMethodReflectionRef) {
         this.globalEqualsMethodReflection = globalEqualsMethodReflectionRef;
 
         return this;
     }
 
+    /**
+     * Equals method with two arguments
+     *
+     * @param globalBiEqualsMethodCodeRef - {@link BiPredicate}
+     * @return this
+     */
     public DefaultValueChangesCheckerBuilder<T> globalBiEqualsMethod(BiPredicate<T, T> globalBiEqualsMethodCodeRef) {
         this.globalBiEqualsMethod = globalBiEqualsMethodCodeRef;
 
         return this;
     }
 
+    /**
+     * Equals field
+     *
+     * @param globalEqualsField - field for equals
+     * @return this
+     */
     public DefaultValueChangesCheckerBuilder<T> addGlobalEqualsField(String globalEqualsField) {
         if (globalEqualsFields == null) {
             globalEqualsFields = new OrderedHashSet<>();

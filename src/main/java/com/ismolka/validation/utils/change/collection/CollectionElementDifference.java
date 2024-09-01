@@ -6,6 +6,18 @@ import com.ismolka.validation.utils.change.value.ValueDifference;
 import java.util.Map;
 import java.util.Objects;
 
+/**
+ * Difference between two elements of {@link java.util.Collection}.
+ *
+ * @param diffBetweenElementsFields - difference between elements.
+ * @param elementFromOldCollection - element from old collection.
+ * @param elementFromNewCollection - element from new collection.
+ * @param elementFromOldCollectionIndex - index of element from old collection.
+ * @param elementFromNewCollectionIndex - index of element from new collection.
+ * @param <F> - type of collection elements.
+ *
+ * @author Ihar Smolka
+ */
 public record CollectionElementDifference<F>(
         Map<String, Difference> diffBetweenElementsFields,
         F elementFromOldCollection,

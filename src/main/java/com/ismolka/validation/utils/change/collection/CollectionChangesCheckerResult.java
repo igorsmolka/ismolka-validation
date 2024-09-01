@@ -10,6 +10,16 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+/**
+ * Result for check two collections.
+ *
+ * @param collectionClass - collection value class.
+ * @param collectionDifferenceMap - collection difference.
+ * @param equalsResult - equals result
+ * @param <F> - type of collection values
+ *
+ * @author Ihar Smolka
+ */
 public record CollectionChangesCheckerResult<F>(
         Class<F> collectionClass,
         Map<CollectionOperation, Set<CollectionElementDifference<F>>> collectionDifferenceMap,

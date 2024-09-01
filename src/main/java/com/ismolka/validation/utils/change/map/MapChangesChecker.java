@@ -16,7 +16,7 @@ import java.util.Map;
 public interface MapChangesChecker<K, V> extends ChangesChecker<V> {
 
     /**
-     * Find difference between two maps
+     * Find difference between two maps.
      *
      * @param oldMap - old map
      * @param newMap - new map
