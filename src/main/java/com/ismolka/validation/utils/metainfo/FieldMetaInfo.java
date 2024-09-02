@@ -9,15 +9,11 @@ import java.util.Objects;
 public record FieldMetaInfo(String name,
                             Method readMethod,
                             Field field,
-                            boolean embeddedId,
-
-                            boolean embeddable,
-                            boolean simpleId,
                             Class<?> clazz,
-                            Class<?> declaringClass,
-                            boolean join
-) {
+                            Class<?> declaringClass
+) implements ClassFieldMetaInfo {
 
+    @Override
     public Object getValueFromObject(Object obj) {
         if (obj == null) {
             return null;

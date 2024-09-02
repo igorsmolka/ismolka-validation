@@ -3,6 +3,8 @@ package com.ismolka.validation.validator;
 import com.ismolka.validation.constraints.CheckUniqueAnnotationWithIgnoreMatchById;
 import com.ismolka.validation.constraints.LimitValidationConstraints;
 import com.ismolka.validation.constraints.UniqueValidationConstraints;
+import com.ismolka.validation.utils.metainfo.DatabaseFieldMetaInfoExtractorUtil;
+import com.ismolka.validation.utils.metainfo.DatabaseFieldPath;
 import com.ismolka.validation.utils.metainfo.FieldPath;
 import com.ismolka.validation.utils.metainfo.MetaInfoExtractorUtil;
 import jakarta.persistence.EntityManager;
@@ -52,16 +54,16 @@ public class CheckUniqueAnnotationWithIgnoreMatchByIdValidatorField extends Abst
 
     @Override
     protected void extractAndCashMetaDataForClass(Class<?> clazz) {
-        Set<Set<FieldPath>> extractedFromUniqueAnnotationMetaInfo = new OrderedHashSet<>();
+        Set<Set<DatabaseFieldPath>> extractedFromUniqueAnnotationMetaInfo = new OrderedHashSet<>();
 
         if (clazz.isAnnotationPresent(UniqueValidationConstraints.class)) {
             extractedFromUniqueAnnotationMetaInfo.addAll(extractConstraintFieldsInfoByAnnotations(clazz, clazz.getAnnotation(UniqueValidationConstraints.class).constraintKeys()));
         }
 
-        META_INFO.put(clazz, new CheckUniqueAnnotationWithIgnoreMatchByIdMetaInfo(clazz, extractedFromUniqueAnnotationMetaInfo, MetaInfoExtractorUtil.extractIdFieldPathsMetaInfo(clazz)));
+        META_INFO.put(clazz, new CheckUniqueAnnotationWithIgnoreMatchByIdMetaInfo(clazz, extractedFromUniqueAnnotationMetaInfo, DatabaseFieldMetaInfoExtractorUtil.extractIdFieldPathsMetaInfo(clazz)));
     }
 
-    private boolean isValidExcludingId(Object value, ConstraintValidatorContext context, Set<Set<FieldPath>> constraintKeys, Set<FieldPath> classIdFields, EntityManager em) {
+    private boolean isValidExcludingId(Object value, ConstraintValidatorContext context, Set<Set<DatabaseFieldPath>> constraintKeys, Set<DatabaseFieldPath> classIdFields, EntityManager em) {
         CriteriaQuery<Object[]> criteriaQuery = createCriteriaQuery(value.getClass(), constraintKeys, value, em);
 
         CriteriaBuilder cb = em.getCriteriaBuilder();
@@ -81,9 +83,9 @@ public class CheckUniqueAnnotationWithIgnoreMatchByIdValidatorField extends Abst
         return !isLimitReached;
     }
 
-    private Predicate createPredicateForExcludingId(Object value, Set<FieldPath> classIdFields, CriteriaBuilder cb, Root<?> root) {
+    private Predicate createPredicateForExcludingId(Object value, Set<DatabaseFieldPath> classIdFields, CriteriaBuilder cb, Root<?> root) {
         List<Predicate> predicates = new ArrayList<>();
-        for (FieldPath idField : classIdFields) {
+        for (DatabaseFieldPath idField : classIdFields) {
             Object idValue = idField.getValueFromObject(value);
             predicates.add(cb.notEqual(asPersistencePath(root, idField), idValue));
         }
@@ -93,8 +95,8 @@ public class CheckUniqueAnnotationWithIgnoreMatchByIdValidatorField extends Abst
 
     private record CheckUniqueAnnotationWithIgnoreMatchByIdMetaInfo(
             Class<?> clazz,
-            Set<Set<FieldPath>> extractedFromUniqueAnnotationMetaInfo,
-            Set<FieldPath> classIdFields
+            Set<Set<DatabaseFieldPath>> extractedFromUniqueAnnotationMetaInfo,
+            Set<DatabaseFieldPath> classIdFields
     ) {
 
         public boolean isEmpty() {

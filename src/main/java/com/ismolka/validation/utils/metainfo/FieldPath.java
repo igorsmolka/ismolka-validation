@@ -8,25 +8,14 @@ public record FieldPath(
         Class<?> clazz,
         String path,
         List<FieldMetaInfo> pathFieldChain
-) {
+) implements ClassFieldPathMetaInfo<FieldMetaInfo> {
 
+    @Override
     public FieldMetaInfo getLast() {
         return pathFieldChain.get(pathFieldChain.size() - 1);
     }
 
-    public boolean isIdentifierPath() {
-        return pathFieldChain.stream().anyMatch(fieldMetaInfo -> fieldMetaInfo.simpleId() || fieldMetaInfo.embeddedId());
-    }
-
-    public FieldMetaInfo findFirstJoin() {
-        return pathFieldChain.stream().filter(FieldMetaInfo::join).findFirst().orElse(null);
-    }
-
-    public boolean needsJoin() {
-        Optional<FieldMetaInfo> fieldInChainWithJoin = pathFieldChain.stream().filter(FieldMetaInfo::join).findFirst();
-        return fieldInChainWithJoin.isPresent();
-    }
-
+    @Override
     public Object getValueFromObject(Object object) {
         Object result = object;
 

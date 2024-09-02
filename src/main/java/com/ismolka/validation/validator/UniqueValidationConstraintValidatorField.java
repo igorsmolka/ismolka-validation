@@ -2,6 +2,7 @@ package com.ismolka.validation.validator;
 
 import com.ismolka.validation.constraints.UniqueValidationConstraints;
 import com.ismolka.validation.constraints.inner.ConstraintKey;
+import com.ismolka.validation.utils.metainfo.DatabaseFieldPath;
 import com.ismolka.validation.utils.metainfo.FieldPath;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
@@ -16,7 +17,7 @@ import java.util.stream.Collectors;
 
 public class UniqueValidationConstraintValidatorField extends AbstractDbFieldConstraintsValidator<UniqueValidationConstraints, Object> implements ConstraintValidator<UniqueValidationConstraints, Object> {
 
-    private static final Map<Class<?>, Set<Set<FieldPath>>> META_INFO = new ConcurrentHashMap<>();
+    private static final Map<Class<?>, Set<Set<DatabaseFieldPath>>> META_INFO = new ConcurrentHashMap<>();
 
     private static final Integer MAX_RESULTS = 1;
 
@@ -37,7 +38,7 @@ public class UniqueValidationConstraintValidatorField extends AbstractDbFieldCon
             extractAndCashMetaDataForClass(clazz);
         }
 
-        Set<Set<FieldPath>> metaInfoConstraintKeys = META_INFO.get(clazz);
+        Set<Set<DatabaseFieldPath>> metaInfoConstraintKeys = META_INFO.get(clazz);
 
         TypedQuery<Object[]> query = em.createQuery(createCriteriaQuery(clazz, metaInfoConstraintKeys, value, em));
         query.setMaxResults(MAX_RESULTS);

@@ -2,6 +2,7 @@ package com.ismolka.validation.validator;
 
 import com.ismolka.validation.constraints.LimitValidationConstraints;
 import com.ismolka.validation.constraints.inner.LimitValidationConstraintGroup;
+import com.ismolka.validation.utils.metainfo.DatabaseFieldPath;
 import com.ismolka.validation.utils.metainfo.FieldPath;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
@@ -57,11 +58,11 @@ public class LimitValidationConstraintValidatorField extends AbstractDbFieldCons
     }
 
 
-    private boolean isValid(Object value, ConstraintValidatorContext context, int limit, Set<Set<FieldPath>> constraintKeys, EntityManager em) {
+    private boolean isValid(Object value, ConstraintValidatorContext context, int limit, Set<Set<DatabaseFieldPath>> constraintKeys, EntityManager em) {
         return getValidationResult(createCriteriaQuery(value.getClass(), constraintKeys, value, em), value, context, constraintKeys, limit, em);
     }
 
-    private boolean getValidationResult(CriteriaQuery<Object[]> criteriaQuery, Object value, ConstraintValidatorContext context, Set<Set<FieldPath>> constraintKeys, Integer limitIfUnique, EntityManager em) {
+    private boolean getValidationResult(CriteriaQuery<Object[]> criteriaQuery, Object value, ConstraintValidatorContext context, Set<Set<DatabaseFieldPath>> constraintKeys, Integer limitIfUnique, EntityManager em) {
         TypedQuery<Object[]> query = em.createQuery(criteriaQuery);
         query.setMaxResults(limitIfUnique);
 
@@ -77,17 +78,17 @@ public class LimitValidationConstraintValidatorField extends AbstractDbFieldCons
     }
 
 
-    protected void fillContextValidator(ConstraintValidatorContext context, Set<Set<FieldPath>> metaInfoConstraintKeys, Object object, List<Object[]> equalityMatrix, int limit) {
+    protected void fillContextValidator(ConstraintValidatorContext context, Set<Set<DatabaseFieldPath>> metaInfoConstraintKeys, Object object, List<Object[]> equalityMatrix, int limit) {
         ConstraintValidatorContextImpl constraintValidatorContext = (ConstraintValidatorContextImpl) context;
 
         int columnIndex = 0;
 
-        for (Set<FieldPath> constraintKey : metaInfoConstraintKeys) {
+        for (Set<DatabaseFieldPath> constraintKey : metaInfoConstraintKeys) {
             for (Object[] row : equalityMatrix) {
                 Boolean isNotUnique = (Boolean) row[columnIndex];
 
                 if (isNotUnique) {
-                    String fields = constraintKey.stream().map(FieldPath::path).collect(Collectors.joining(", "));
+                    String fields = constraintKey.stream().map(DatabaseFieldPath::path).collect(Collectors.joining(", "));
                     String values = constraintKey.stream().map(fieldMetaInfo -> String.valueOf(fieldMetaInfo.getValueFromObject(object))).collect(Collectors.joining(", "));
 
                     constraintValidatorContext.addMessageParameter(LIMIT_VALUE_STR_PARAM_NAME, limit);
@@ -148,7 +149,7 @@ public class LimitValidationConstraintValidatorField extends AbstractDbFieldCons
         }
     }
 
-    private record LimitValueMetaInfo(int limit, Set<Set<FieldPath>> constraintKeys) {
+    private record LimitValueMetaInfo(int limit, Set<Set<DatabaseFieldPath>> constraintKeys) {
 
         @Override
         public boolean equals(Object o) {

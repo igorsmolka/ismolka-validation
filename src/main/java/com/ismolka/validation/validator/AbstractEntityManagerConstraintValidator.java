@@ -1,5 +1,7 @@
 package com.ismolka.validation.validator;
 
+import com.ismolka.validation.utils.metainfo.DatabaseFieldMetaInfo;
+import com.ismolka.validation.utils.metainfo.DatabaseFieldPath;
 import com.ismolka.validation.utils.metainfo.FieldMetaInfo;
 import com.ismolka.validation.utils.metainfo.FieldPath;
 import jakarta.persistence.EntityManager;
@@ -43,13 +45,13 @@ public abstract class AbstractEntityManagerConstraintValidator<T extends Annotat
         }));
     }
 
-    protected Predicate toEqualsPredicate(Map<FieldPath, FieldPath> sourceTargetMap, Root<?> root, CriteriaBuilder cb, Object object) {
+    protected Predicate toEqualsPredicate(Map<DatabaseFieldPath, DatabaseFieldPath> sourceTargetMap, Root<?> root, CriteriaBuilder cb, Object object) {
         Set<Predicate> keyPredicates = new OrderedHashSet<>();
 
-        for (FieldPath sourcePath : sourceTargetMap.keySet()) {
+        for (DatabaseFieldPath sourcePath : sourceTargetMap.keySet()) {
             Object valueFromObject = sourcePath.getValueFromObject(object);
 
-            FieldPath targetPath = sourceTargetMap.get(sourcePath);
+            DatabaseFieldPath targetPath = sourceTargetMap.get(sourcePath);
 
             if (valueFromObject == null) {
                 keyPredicates.add(cb.isNull(asPersistencePath(root, targetPath)));
@@ -63,10 +65,10 @@ public abstract class AbstractEntityManagerConstraintValidator<T extends Annotat
     }
 
 
-    protected Predicate toEqualsPredicate(Set<FieldPath> constraintKey, Root<?> root, CriteriaBuilder cb, Object object) {
+    protected Predicate toEqualsPredicate(Set<DatabaseFieldPath> constraintKey, Root<?> root, CriteriaBuilder cb, Object object) {
         Set<Predicate> keyPredicates = new OrderedHashSet<>();
 
-        for (FieldPath metaInfoFieldPath : constraintKey) {
+        for (DatabaseFieldPath metaInfoFieldPath : constraintKey) {
             Object valueFromObject = metaInfoFieldPath.getValueFromObject(object);
 
             if (valueFromObject == null) {
@@ -80,11 +82,11 @@ public abstract class AbstractEntityManagerConstraintValidator<T extends Annotat
         return cb.and(keyPredicates.toArray(Predicate[]::new));
     }
 
-    protected Path<?> asPersistencePath(Root<?> root, FieldPath metaInfoField) {
+    protected Path<?> asPersistencePath(Root<?> root, DatabaseFieldPath databaseFieldPath) {
         Path<?> path = root;
 
-        for (FieldMetaInfo fieldMetaInfo : metaInfoField.pathFieldChain()) {
-            path = path.get(fieldMetaInfo.name());
+        for (DatabaseFieldMetaInfo databaseFieldMetaInfo : databaseFieldPath.pathFieldChain()) {
+            path = path.get(databaseFieldMetaInfo.field().name());
         }
 
         return path;

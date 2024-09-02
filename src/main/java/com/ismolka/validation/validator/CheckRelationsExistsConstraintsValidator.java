@@ -3,6 +3,8 @@ package com.ismolka.validation.validator;
 import com.ismolka.validation.constraints.CheckRelationsExistsConstraints;
 import com.ismolka.validation.constraints.inner.RelationCheckConstraint;
 import com.ismolka.validation.constraints.inner.RelationCheckConstraintFieldMapping;
+import com.ismolka.validation.utils.metainfo.DatabaseFieldMetaInfoExtractorUtil;
+import com.ismolka.validation.utils.metainfo.DatabaseFieldPath;
 import com.ismolka.validation.utils.metainfo.FieldPath;
 import com.ismolka.validation.utils.metainfo.MetaInfoExtractorUtil;
 import jakarta.persistence.EntityManager;
@@ -83,14 +85,14 @@ public class CheckRelationsExistsConstraintsValidator extends AbstractEntityMana
                     Object source = checkRelationMetaInfo.relationField.getValueFromObject(object);
                     classStr = source.getClass().getSimpleName();
 
-                    for (FieldPath fieldPath : checkRelationMetaInfo.relationClassIds) {
+                    for (DatabaseFieldPath fieldPath : checkRelationMetaInfo.relationClassIds) {
                         notExistingFields.add(fieldPath.path());
                         valuesForFields.add(String.valueOf(fieldPath.getValueFromObject(source)));
                     }
                 } else {
                     classStr = object.getClass().getSimpleName();
 
-                    for (FieldPath fieldPath : checkRelationMetaInfo.fromFkToPkFieldMapping.keySet()) {
+                    for (DatabaseFieldPath fieldPath : checkRelationMetaInfo.fromFkToPkFieldMapping.keySet()) {
                         notExistingFields.add(fieldPath.path());
                         valuesForFields.add(String.valueOf(fieldPath.getValueFromObject(object)));
                     }
@@ -124,25 +126,25 @@ public class CheckRelationsExistsConstraintsValidator extends AbstractEntityMana
                 throw new IllegalArgumentException("Can't provide a validation by relationFieldIds without any information about joined class");
             }
 
-            FieldPath relationFieldPath = null;
+            DatabaseFieldPath relationFieldPath = null;
             if (!relationCheckConstraint.relationField().isEmpty()) {
-                relationFieldPath = MetaInfoExtractorUtil.extractFieldPathMetaInfo(relationCheckConstraint.relationField(), clazz);
+                relationFieldPath = DatabaseFieldMetaInfoExtractorUtil.extractDatabaseFieldPathMetaInfo(relationCheckConstraint.relationField(), clazz);
             }
 
-            Class<?> relationClass = relationCheckConstraint.relationClass() != Object.class ? relationCheckConstraint.relationClass() : relationFieldPath.findFirstJoin().clazz();
+            Class<?> relationClass = relationCheckConstraint.relationClass() != Object.class ? relationCheckConstraint.relationClass() : relationFieldPath.findFirstJoin().field().clazz();
 
-            Map<FieldPath, FieldPath> fromFkToPkFieldMapping = new HashMap<>();
+            Map<DatabaseFieldPath, DatabaseFieldPath> fromFkToPkFieldMapping = new HashMap<>();
             if (relationCheckConstraint.relationMapping().length != 0) {
                 for (RelationCheckConstraintFieldMapping relationCheckConstraintFieldMappingItem : relationCheckConstraint.relationMapping()) {
-                    FieldPath fkPath = MetaInfoExtractorUtil.extractFieldPathMetaInfo(relationCheckConstraintFieldMappingItem.fromForeignKeyField(), clazz);
+                    DatabaseFieldPath fkPath = DatabaseFieldMetaInfoExtractorUtil.extractDatabaseFieldPathMetaInfo(relationCheckConstraintFieldMappingItem.fromForeignKeyField(), clazz);
 
-                    FieldPath joinPkPath = MetaInfoExtractorUtil.extractFieldPathMetaInfo(relationCheckConstraintFieldMappingItem.toPrimaryKeyField(), relationClass);
+                    DatabaseFieldPath joinPkPath = DatabaseFieldMetaInfoExtractorUtil.extractDatabaseFieldPathMetaInfo(relationCheckConstraintFieldMappingItem.toPrimaryKeyField(), relationClass);
 
                     fromFkToPkFieldMapping.put(fkPath, joinPkPath);
                 }
             }
 
-            Set<FieldPath> relationClassIds = MetaInfoExtractorUtil.extractIdFieldPathsMetaInfo(relationClass);
+            Set<DatabaseFieldPath> relationClassIds = DatabaseFieldMetaInfoExtractorUtil.extractIdFieldPathsMetaInfo(relationClass);
 
             checkRelationMetaInfo.add(new CheckRelationMetaInfo(relationFieldPath, fromFkToPkFieldMapping, relationClassIds, relationClass, relationCheckConstraint.message(), relationCheckConstraint.relationErrorMessageNaming()));
         }
@@ -215,10 +217,10 @@ public class CheckRelationsExistsConstraintsValidator extends AbstractEntityMana
         }
     }
 
-    private record CheckRelationMetaInfo(FieldPath relationField,
-                                         Map<FieldPath, FieldPath> fromFkToPkFieldMapping,
+    private record CheckRelationMetaInfo(DatabaseFieldPath relationField,
+                                         Map<DatabaseFieldPath, DatabaseFieldPath> fromFkToPkFieldMapping,
 
-                                         Set<FieldPath> relationClassIds,
+                                         Set<DatabaseFieldPath> relationClassIds,
                                          Class<?> relationClass,
                                          String message,
                                          String relationErrorMessageNaming) {

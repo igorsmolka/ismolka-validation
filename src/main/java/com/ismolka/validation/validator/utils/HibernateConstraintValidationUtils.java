@@ -1,5 +1,6 @@
 package com.ismolka.validation.validator.utils;
 
+import com.ismolka.validation.utils.metainfo.DatabaseFieldPath;
 import com.ismolka.validation.utils.metainfo.FieldPath;
 import org.hibernate.validator.constraintvalidation.HibernateConstraintValidatorContext;
 
@@ -9,12 +10,12 @@ import java.util.stream.Collectors;
 public class HibernateConstraintValidationUtils {
 
     public static void fieldNameBatchesConstraintViolationBuild(HibernateConstraintValidatorContext constraintValidatorContext,
-                                                                  Set<FieldPath> constraintKey,
+                                                                  Set<DatabaseFieldPath> constraintKey,
                                                                   Object val,
                                                                   String fieldKey,
                                                                   String valueKey,
                                                                   String message) {
-        String fields = constraintKey.stream().map(FieldPath::path).collect(Collectors.joining(", "));
+        String fields = constraintKey.stream().map(DatabaseFieldPath::path).collect(Collectors.joining(", "));
         String values = constraintKey.stream().map(fieldMetaInfo -> String.valueOf(fieldMetaInfo.getValueFromObject(val))).collect(Collectors.joining(", "));
 
         constraintValidatorContext.addMessageParameter(fieldKey, fields);

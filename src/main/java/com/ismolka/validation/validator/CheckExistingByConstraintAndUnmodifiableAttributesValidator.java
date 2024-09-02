@@ -12,6 +12,9 @@ import com.ismolka.validation.utils.change.value.ValueDifference;
 import com.ismolka.validation.utils.constant.CollectionOperation;
 import com.ismolka.validation.constraints.inner.UnmodifiableAttribute;
 import com.ismolka.validation.constraints.inner.UnmodifiableCollection;
+import com.ismolka.validation.utils.metainfo.DatabaseFieldMetaInfo;
+import com.ismolka.validation.utils.metainfo.DatabaseFieldMetaInfoExtractorUtil;
+import com.ismolka.validation.utils.metainfo.DatabaseFieldPath;
 import com.ismolka.validation.utils.metainfo.FieldPath;
 import com.ismolka.validation.validator.utils.HibernateConstraintValidationUtils;
 import com.ismolka.validation.utils.metainfo.MetaInfoExtractorUtil;
@@ -84,7 +87,7 @@ public class CheckExistingByConstraintAndUnmodifiableAttributesValidator extends
 
         CheckExistingMetaInfo checkExistingMetaInfo = META_INFO.get(clazz);
 
-        Set<FieldPath> constraintKey = checkExistingMetaInfo.existingConstraint();
+        Set<DatabaseFieldPath> constraintKey = checkExistingMetaInfo.existingConstraint();
 
         CriteriaQuery<Object> criteriaQuery = createCriteriaQuery(clazz, constraintKey, value, em);
 
@@ -211,12 +214,12 @@ public class CheckExistingByConstraintAndUnmodifiableAttributesValidator extends
         }
     }
 
-    protected void fillContextValidatorForExistingConstraint(ConstraintValidatorContext context, Set<FieldPath> constraintKey, Object object) {
+    protected void fillContextValidatorForExistingConstraint(ConstraintValidatorContext context, Set<DatabaseFieldPath> constraintKey, Object object) {
         HibernateConstraintValidatorContext constraintValidatorContext = context.unwrap(HibernateConstraintValidatorContext.class);
         HibernateConstraintValidationUtils.fieldNameBatchesConstraintViolationBuild(constraintValidatorContext, constraintKey, object, DOESNT_EXIST_FIELDS_PARAM_NAME, DOESNT_EXIST_FIELD_VALUES_PARAM_NAME, message);
     }
 
-    protected CriteriaQuery<Object> createCriteriaQuery(Class<?> clazz, Set<FieldPath> constraintKey, Object object, EntityManager em) {
+    protected CriteriaQuery<Object> createCriteriaQuery(Class<?> clazz, Set<DatabaseFieldPath> constraintKey, Object object, EntityManager em) {
         CriteriaBuilder cb = em.getCriteriaBuilder();
 
         CriteriaQuery<Object> criteriaQuery = cb.createQuery(Object.class);
@@ -235,7 +238,7 @@ public class CheckExistingByConstraintAndUnmodifiableAttributesValidator extends
 
     @Override
     protected void extractAndCashMetaDataForClass(Class<?> clazz) {
-        Set<FieldPath> fieldsMetaInfoResult = extractExistingConstraintInfo(clazz);
+        Set<DatabaseFieldPath> fieldsMetaInfoResult = extractExistingConstraintInfo(clazz);
         Set<UnmodifiedAttributeMetaInfo<?>> unmodifiedAttributeMetaInfos = extractUnmodifiedAttributeMetaInfo(clazz);
         Set<UnmodifiedCollectionMetaInfo<?>> unmodifiedCollectionMetaInfos = extractUnmodifiedCollectionMetaInfo(clazz);
 
@@ -250,7 +253,7 @@ public class CheckExistingByConstraintAndUnmodifiableAttributesValidator extends
         Set<UnmodifiedCollectionMetaInfo<?>> unmodifiedCollections = new OrderedHashSet<>();
 
         for (UnmodifiableCollection unmodifiableCollection : unmodifiableCollections) {
-            FieldPath collection = MetaInfoExtractorUtil.extractFieldPathMetaInfo(unmodifiableCollection.value(), clazz);
+            DatabaseFieldPath collection = DatabaseFieldMetaInfoExtractorUtil.extractDatabaseFieldPathMetaInfo(unmodifiableCollection.value(), clazz);
 
             unmodifiedCollections.add(createUnmodifiedCollectionMetaInfo(unmodifiableCollection.collectionGenericClass(), collection, unmodifiableCollection));
         }
@@ -258,8 +261,8 @@ public class CheckExistingByConstraintAndUnmodifiableAttributesValidator extends
         return unmodifiedCollections;
     }
 
-    private <X> UnmodifiedCollectionMetaInfo<X> createUnmodifiedCollectionMetaInfo(Class<X> collectionClass, FieldPath collection, UnmodifiableCollection unmodifiableCollection) {
-        Class<?> attributeClass = collection.getLast().clazz();
+    private <X> UnmodifiedCollectionMetaInfo<X> createUnmodifiedCollectionMetaInfo(Class<X> collectionClass, DatabaseFieldPath collection, UnmodifiableCollection unmodifiableCollection) {
+        Class<?> attributeClass = collection.getLast().field().clazz();
 
         if (!Collection.class.isAssignableFrom(attributeClass)) {
             throw new IllegalArgumentException(String.format("Class of field %s is not Collection", unmodifiableCollection.value()));
@@ -294,8 +297,8 @@ public class CheckExistingByConstraintAndUnmodifiableAttributesValidator extends
         Set<UnmodifiedAttributeMetaInfo<?>> result = new OrderedHashSet<>();
 
         for (UnmodifiableAttribute unmodifiableAttribute : unmodifiableAttributes) {
-            FieldPath attributePath = MetaInfoExtractorUtil.extractFieldPathMetaInfo(unmodifiableAttribute.value(), clazz);
-            Class<?> attributeClass = attributePath.getLast().clazz();
+            DatabaseFieldPath attributePath = DatabaseFieldMetaInfoExtractorUtil.extractDatabaseFieldPathMetaInfo(unmodifiableAttribute.value(), clazz);
+            Class<?> attributeClass = attributePath.getLast().field().clazz();
 
             result.add(createUnmodifiedAttributeMetaInfo(attributeClass, attributePath, unmodifiableAttribute));
         }
@@ -303,7 +306,7 @@ public class CheckExistingByConstraintAndUnmodifiableAttributesValidator extends
         return result;
     }
 
-    private <X> UnmodifiedAttributeMetaInfo<X> createUnmodifiedAttributeMetaInfo(Class<X> attributeClass, FieldPath attributePath, UnmodifiableAttribute unmodifiableAttribute) {
+    private <X> UnmodifiedAttributeMetaInfo<X> createUnmodifiedAttributeMetaInfo(Class<X> attributeClass, DatabaseFieldPath attributePath, UnmodifiableAttribute unmodifiableAttribute) {
         DefaultValueChangesCheckerBuilder<X> valueChangesCheckerBuilder = DefaultValueChangesCheckerBuilder.builder(attributeClass);
         Arrays.stream(unmodifiableAttribute.equalsFields()).forEach(valueChangesCheckerBuilder::addGlobalEqualsField);
 
@@ -328,11 +331,11 @@ public class CheckExistingByConstraintAndUnmodifiableAttributesValidator extends
         return methodWithSameClassArg;
     }
 
-    private Set<FieldPath> extractExistingConstraintInfo(Class<?> clazz) {
-        Set<FieldPath> fieldsMetaInfoResult = new OrderedHashSet<>();
+    private Set<DatabaseFieldPath> extractExistingConstraintInfo(Class<?> clazz) {
+        Set<DatabaseFieldPath> fieldsMetaInfoResult = new OrderedHashSet<>();
 
         for (String validationField : constraintKeyFields) {
-            FieldPath path = MetaInfoExtractorUtil.extractFieldPathMetaInfo(validationField, clazz);
+            DatabaseFieldPath path = DatabaseFieldMetaInfoExtractorUtil.extractDatabaseFieldPathMetaInfo(validationField, clazz);
             fieldsMetaInfoResult.add(path);
         }
 
@@ -341,7 +344,7 @@ public class CheckExistingByConstraintAndUnmodifiableAttributesValidator extends
 
 
     private record CheckUnmodifiableResult(
-            FieldPath fieldPath,
+            DatabaseFieldPath fieldPath,
             Object newValue,
             Object oldValue,
 
@@ -365,7 +368,7 @@ public class CheckExistingByConstraintAndUnmodifiableAttributesValidator extends
     }
 
     private record CheckExistingMetaInfo(
-            Set<FieldPath> existingConstraint,
+            Set<DatabaseFieldPath> existingConstraint,
             Set<UnmodifiedAttributeMetaInfo<?>> unmodifiedAttributeMetaInfo,
             Set<UnmodifiedCollectionMetaInfo<?>> unmodifiedCollectionMetaInfo
     ) {
@@ -385,7 +388,7 @@ public class CheckExistingByConstraintAndUnmodifiableAttributesValidator extends
     }
 
     private record UnmodifiedCollectionMetaInfo<X>(
-        FieldPath pathToCollection,
+        DatabaseFieldPath pathToCollection,
 
         Class<X> collectionGenericClass,
 
@@ -416,7 +419,7 @@ public class CheckExistingByConstraintAndUnmodifiableAttributesValidator extends
 
         Class<X> attributeClass,
 
-        FieldPath fieldPath,
+        DatabaseFieldPath fieldPath,
 
         String message,
 
