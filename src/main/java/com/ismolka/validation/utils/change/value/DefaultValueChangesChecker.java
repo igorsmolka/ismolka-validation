@@ -82,40 +82,40 @@ public class DefaultValueChangesChecker<T> implements ValueChangesChecker<T> {
             return;
         }
 
-        if (!CollectionUtils.isEmpty(attributesCheckDescriptors)) {
-            for (ValueCheckDescriptor<?> attributeToCheck : attributesCheckDescriptors) {
-                Object newAttrVal = attributeToCheck.attribute().getValueFromObject(newObj);
-                Object oldAttrVal = attributeToCheck.attribute().getValueFromObject(oldObj);
+        if (!CollectionUtils.isEmpty(attributesCheckDescriptors) || !CollectionUtils.isEmpty(globalEqualsFields)) {
+            if (!CollectionUtils.isEmpty(attributesCheckDescriptors)) {
+                for (ValueCheckDescriptor<?> attributeToCheck : attributesCheckDescriptors) {
+                    Object newAttrVal = attributeToCheck.attribute().getValueFromObject(newObj);
+                    Object oldAttrVal = attributeToCheck.attribute().getValueFromObject(oldObj);
 
-                checkByAttributeDescriptorAndPutDiffInMap(attributeToCheck, newAttrVal, oldAttrVal, diffMap);
+                    checkByAttributeDescriptorAndPutDiffInMap(attributeToCheck, newAttrVal, oldAttrVal, diffMap);
 
-                if (!diffMap.isEmpty() && stopOnFirstDiff) {
-                    return;
-                }
-            }
-        }
-
-        if (!CollectionUtils.isEmpty(globalEqualsFields)) {
-            for (FieldPath equalsField : globalEqualsFields) {
-                Class<?> attributeClass = equalsField.getLast().clazz();
-                Class<?> attributeDeclaringClass = equalsField.getLast().declaringClass();
-                Object oldObjVal = equalsField.getValueFromObject(oldObj);
-                Object newObjVal = equalsField.getValueFromObject(newObj);
-
-                if (!Objects.equals(oldObjVal, newObjVal)) {
-                    diffMap.put(equalsField.path(), differenceToReferenceChainByPath(equalsField.path(), new ValueDifference<>(equalsField.path(), sourceClass, attributeDeclaringClass, (Class<Object>) attributeClass, oldObjVal, newObjVal)));
-                    if (stopOnFirstDiff) {
+                    if (!diffMap.isEmpty() && stopOnFirstDiff) {
                         return;
                     }
                 }
             }
 
-            return;
-        }
+            if (!CollectionUtils.isEmpty(globalEqualsFields)) {
+                for (FieldPath equalsField : globalEqualsFields) {
+                    Class<?> attributeClass = equalsField.getLast().clazz();
+                    Class<?> attributeDeclaringClass = equalsField.getLast().declaringClass();
+                    Object oldObjVal = equalsField.getValueFromObject(oldObj);
+                    Object newObjVal = equalsField.getValueFromObject(newObj);
 
-        boolean equalsResult = Objects.equals(oldObj, newObj);
-        if (!equalsResult) {
-            diffMap.put(null, new ValueDifference<>(null, null, null, sourceClass, oldObj, newObj));
+                    if (!Objects.equals(oldObjVal, newObjVal)) {
+                        diffMap.put(equalsField.path(), differenceToReferenceChainByPath(equalsField.path(), new ValueDifference<>(equalsField.path(), sourceClass, attributeDeclaringClass, (Class<Object>) attributeClass, oldObjVal, newObjVal)));
+                        if (stopOnFirstDiff) {
+                            return;
+                        }
+                    }
+                }
+            }
+        } else {
+            boolean equalsResult = Objects.equals(oldObj, newObj);
+            if (!equalsResult) {
+                diffMap.put(null, new ValueDifference<>(null, null, null, sourceClass, oldObj, newObj));
+            }
         }
     }
 
