@@ -4,6 +4,8 @@ import com.ismolka.validation.utils.change.ChangesChecker;
 import com.ismolka.validation.utils.change.collection.CollectionChangesChecker;
 import com.ismolka.validation.utils.change.collection.CollectionChangesCheckerResult;
 import com.ismolka.validation.utils.change.Difference;
+import com.ismolka.validation.utils.change.map.MapChangesChecker;
+import com.ismolka.validation.utils.change.map.MapChangesCheckerResult;
 import com.ismolka.validation.utils.metainfo.FieldPath;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ReflectionUtils;
@@ -143,6 +145,13 @@ public class DefaultValueChangesChecker<T> implements ValueChangesChecker<T> {
                 CollectionChangesChecker<X> collectionChangesChecker = (CollectionChangesChecker<X>) changesChecker;
                 CollectionChangesCheckerResult<X> collectionChangesCheckerResult = collectionChangesChecker.getResult((Collection<X>) oldAttrVal, (Collection<X>) newAttrVal);
                 diffMap.put(attributeToCheck.attribute().path(), collectionChangesCheckerResult);
+                return;
+            }
+
+            if (MapChangesChecker.class.isAssignableFrom(changesChecker.getClass())) {
+                MapChangesChecker<?, X> mapChangesChecker = (MapChangesChecker<?, X>) changesChecker;
+                MapChangesCheckerResult<?, X> mapChangesCheckerResult = mapChangesChecker.getResult((Map) oldAttrVal, (Map) newAttrVal);
+                diffMap.put(attributeToCheck.attribute().path(), mapChangesCheckerResult);
                 return;
             }
 

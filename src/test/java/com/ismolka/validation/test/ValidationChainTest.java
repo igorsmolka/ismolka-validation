@@ -1,7 +1,6 @@
 package com.ismolka.validation.test;
 
 import com.ismolka.validation.test.config.TestConfig;
-import com.ismolka.validation.test.model.TestElement;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
 import org.junit.jupiter.api.Assertions;
@@ -23,9 +22,9 @@ public class ValidationChainTest {
 
     @Test
     public void test_onFail() {
-        TestElement testElement = new TestElement();
+        ChainTestObject chainTestObject = new ChainTestObject();
 
-        Set<ConstraintViolation<TestElement>> constraintViolationSet = validator.validate(testElement);
+        Set<ConstraintViolation<ChainTestObject>> constraintViolationSet = validator.validate(chainTestObject);
 
         Assertions.assertEquals(EXPECTED_CONSTRAINT_COUNT_ON_FAIL, constraintViolationSet.size());
     }
