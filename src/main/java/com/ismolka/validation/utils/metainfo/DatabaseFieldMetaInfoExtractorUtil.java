@@ -58,6 +58,7 @@ public class DatabaseFieldMetaInfoExtractorUtil {
         boolean simpleId = false;
         boolean embeddedId = false;
         boolean join = false;
+        boolean embeddable = false;
 
         if (field.isAnnotationPresent(Id.class)) {
             simpleId = true;
@@ -73,9 +74,14 @@ public class DatabaseFieldMetaInfoExtractorUtil {
             join = true;
         }
 
+        if (field.getType().isAnnotationPresent(Embeddable.class)) {
+            embeddable = true;
+        }
+
         return new DatabaseFieldMetaInfo(
                 fieldMetaInfo,
                 embeddedId,
+                embeddable,
                 simpleId,
                 join
         );

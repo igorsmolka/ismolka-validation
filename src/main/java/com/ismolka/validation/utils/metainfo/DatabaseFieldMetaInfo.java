@@ -7,6 +7,7 @@ import java.util.Objects;
 public record DatabaseFieldMetaInfo(
         FieldMetaInfo field,
         boolean embeddedId,
+        boolean embeddable,
         boolean simpleId,
         boolean join
 ) implements ClassFieldMetaInfo {
@@ -21,11 +22,11 @@ public record DatabaseFieldMetaInfo(
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         DatabaseFieldMetaInfo that = (DatabaseFieldMetaInfo) o;
-        return embeddedId == that.embeddedId && simpleId == that.simpleId && join == that.join && Objects.equals(field, that.field);
+        return embeddedId == that.embeddedId && embeddable == that.embeddable && simpleId == that.simpleId && join == that.join && Objects.equals(field, that.field);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(field, embeddedId, simpleId, join);
+        return Objects.hash(field, embeddedId, embeddable, simpleId, join);
     }
 }
