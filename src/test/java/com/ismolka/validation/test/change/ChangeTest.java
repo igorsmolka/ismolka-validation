@@ -3,9 +3,11 @@ package com.ismolka.validation.test.change;
 import com.ismolka.validation.test.config.TestConfig;
 import com.ismolka.validation.utils.change.CheckerResult;
 import com.ismolka.validation.utils.change.Difference;
+import com.ismolka.validation.utils.change.collection.CollectionChangesCheckerResult;
 import com.ismolka.validation.utils.change.collection.CollectionElementDifference;
 import com.ismolka.validation.utils.change.collection.DefaultCollectionChangesCheckerBuilder;
 import com.ismolka.validation.utils.change.map.DefaultMapChangesCheckerBuilder;
+import com.ismolka.validation.utils.change.map.MapChangesCheckerResult;
 import com.ismolka.validation.utils.change.map.MapElementDifference;
 import com.ismolka.validation.utils.change.value.DefaultValueChangesCheckerBuilder;
 import com.ismolka.validation.utils.change.value.ValueCheckDescriptorBuilder;
@@ -203,5 +205,52 @@ public class ChangeTest {
         Difference difference = result.navigator().getDifference("innerObject.valueFromObject111.test");
 
         Assertions.assertNull(difference);
+    }
+
+    @Test
+    public void test_simpleObject() {
+        String oldString = OLD_VAL_STR;
+        String newString = NEW_VAL_STR;
+
+        CheckerResult result = DefaultValueChangesCheckerBuilder.builder(String.class).build().getResult(oldString, newString);
+
+        ValueDifference<?> difference = result.navigator().getDifference().unwrap(ValueDifference.class);
+
+        Assertions.assertEquals(difference.oldValue(), oldString);
+        Assertions.assertEquals(difference.newValue(), newString);
+    }
+
+
+    @Test
+    public void test_simpleCollection() {
+        String oldString = OLD_VAL_STR;
+        String newString = NEW_VAL_STR;
+
+        List<String> oldCollection = List.of(oldString);
+        List<String> newCollection = List.of(newString);
+
+        CollectionChangesCheckerResult<String> result = DefaultCollectionChangesCheckerBuilder.builder(String.class).build().getResult(oldCollection, newCollection);
+        CollectionElementDifference<String> difference = result.navigator().getDifferenceForCollection(String.class).stream().findFirst().orElseThrow(() -> new RuntimeException("Result for collection is not present"));
+
+        Assertions.assertEquals(difference.elementFromOldCollection(), oldString);
+        Assertions.assertEquals(difference.elementFromNewCollection(), newString);
+    }
+
+
+    @Test
+    public void test_simpleMap() {
+        String key = "ID_IN_MAP";
+
+        String oldString = OLD_VAL_STR;
+        String newString = NEW_VAL_STR;
+
+        Map<String, String> oldMap = Map.of(key, oldString);
+        Map<String, String> newMap = Map.of(key, newString);
+
+        MapChangesCheckerResult<String, String> result = DefaultMapChangesCheckerBuilder.builder(String.class, String.class).build().getResult(oldMap, newMap);
+        MapElementDifference<String, String> difference = result.navigator().getDifferenceForMap(String.class, String.class).stream().findFirst().orElseThrow(() -> new RuntimeException("Result for map is not present"));
+
+        Assertions.assertEquals(difference.elementFromOldMap(), oldString);
+        Assertions.assertEquals(difference.elementFromNewMap(), newString);
     }
 }
