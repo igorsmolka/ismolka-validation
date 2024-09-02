@@ -2,6 +2,7 @@ package com.ismolka.validation.test.change;
 
 import com.ismolka.validation.test.config.TestConfig;
 import com.ismolka.validation.utils.change.CheckerResult;
+import com.ismolka.validation.utils.change.Difference;
 import com.ismolka.validation.utils.change.collection.CollectionElementDifference;
 import com.ismolka.validation.utils.change.collection.DefaultCollectionChangesCheckerBuilder;
 import com.ismolka.validation.utils.change.map.DefaultMapChangesCheckerBuilder;
@@ -73,6 +74,27 @@ public class ChangeTest {
     }
 
     @Test
+    public void test_innerObjectWithoutValueDescriptor() {
+        ChangeTestObject oldTestObj = new ChangeTestObject();
+        ChangeTestObject newTestObj = new ChangeTestObject();
+
+        oldTestObj.setInnerObject(new ChangeTestInnerObject(OLD_VAL_STR));
+        newTestObj.setInnerObject(new ChangeTestInnerObject(NEW_VAL_STR));
+
+        CheckerResult result = DefaultValueChangesCheckerBuilder.builder(ChangeTestObject.class)
+                .addGlobalEqualsField("innerObject.valueFromObject")
+                .build().getResult(oldTestObj, newTestObj);
+
+        ValueDifference<?> valueDifference = result.navigator().getDifference("innerObject.valueFromObject").unwrap(ValueDifference.class);
+
+        String oldValueFromCheckResult = (String) valueDifference.oldValue();
+        String newValueFromCheckResult = (String) valueDifference.newValue();
+
+        Assertions.assertEquals(oldValueFromCheckResult, oldTestObj.getInnerObject().getValueFromObject());
+        Assertions.assertEquals(newValueFromCheckResult, newTestObj.getInnerObject().getValueFromObject());
+    }
+
+    @Test
     public void test_collection() {
         String key = "ID_IN_COLLECTION";
 
@@ -132,5 +154,22 @@ public class ChangeTest {
 
         Assertions.assertEquals(difference.elementFromOldMap().getValueFromMap(), oldMapObj.getValueFromMap());
         Assertions.assertEquals(difference.elementFromNewMap().getValueFromMap(), newMapObj.getValueFromMap());
+    }
+
+    @Test
+    public void test_wrongNavigate() {
+        ChangeTestObject oldTestObj = new ChangeTestObject();
+        ChangeTestObject newTestObj = new ChangeTestObject();
+
+        oldTestObj.setInnerObject(new ChangeTestInnerObject(OLD_VAL_STR));
+        newTestObj.setInnerObject(new ChangeTestInnerObject(NEW_VAL_STR));
+
+        CheckerResult result = DefaultValueChangesCheckerBuilder.builder(ChangeTestObject.class)
+                .addGlobalEqualsField("innerObject.valueFromObject")
+                .build().getResult(oldTestObj, newTestObj);
+
+        Difference difference = result.navigator().getDifference("innerObject.valueFromObject111.test");
+
+        Assertions.assertNull(difference);
     }
 }

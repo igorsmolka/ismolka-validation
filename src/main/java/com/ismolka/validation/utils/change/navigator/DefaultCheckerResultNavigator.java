@@ -153,65 +153,73 @@ public class DefaultCheckerResultNavigator implements CheckerResultNavigator {
 
         String[] fields = fieldPath.split("\\.");
 
-        Map<String, Difference> differenceMap = null;
         Difference lastDiff = difference;
+        int currentFieldIndex = 0;
+        boolean endIsReached = false;
 
-        for (int i = 0; i < fields.length; i++) {
-            String field = fields[i];
-
-            if (differenceMap != null) {
-                lastDiff = differenceMap.get(field);
-            } else if (i == 0) {
-                i--;
-            }
-
-            if (lastDiff == null) {
-                return null;
-            }
-
+        do {
+            String field = fields[currentFieldIndex];
             Class<?> lastDiffClass = lastDiff.getClass();
 
             if (ValueDifference.class.isAssignableFrom(lastDiffClass)) {
-                if (i != fields.length - 1) {
-                    lastDiff = null;
-                }
-                break;
-            }
-
-            if (DifferenceRef.class.isAssignableFrom(lastDiffClass)) {
-                DifferenceRef differenceRef = lastDiff.unwrap(DifferenceRef.class);
-
-                if (i + 1 < fields.length && !Objects.equals(differenceRef.onField(), fields[i + 1])) {
+                if (currentFieldIndex != fields.length - 1) {
                     return null;
                 }
 
-                lastDiff = differenceRef.toDifference();
-                if (CollectionChangesCheckerResult.class.isAssignableFrom(lastDiff.getClass()) || MapChangesCheckerResult.class.isAssignableFrom(lastDiff.getClass())) {
-                    throw new RuntimeException(String.format("Cannot extract result: unexpected collection or map on the path %s", field));
-                }
-                differenceMap = null;
-                continue;
-            }
-
-            if (ValueChangesCheckerResult.class.isAssignableFrom(lastDiffClass)) {
-                ValueChangesCheckerResult valueChangesCheckerResult = lastDiff.unwrap(ValueChangesCheckerResult.class);
-
-                lastDiff = valueChangesCheckerResult;
-
-                differenceMap = valueChangesCheckerResult.differenceMap();
-                continue;
+                return lastDiff;
             }
 
             if (CollectionChangesCheckerResult.class.isAssignableFrom(lastDiffClass) || MapChangesCheckerResult.class.isAssignableFrom(lastDiffClass)) {
-                if (i != fields.length - 1) {
+                if (currentFieldIndex != fields.length - 1) {
                     throw new RuntimeException(String.format("Cannot extract result: unexpected collection or map on the path %s", field));
                 } else {
                     return lastDiff;
                 }
             }
-        }
 
-        return lastDiff;
+            if (ValueChangesCheckerResult.class.isAssignableFrom(lastDiffClass)) {
+                ValueChangesCheckerResult valueChangesCheckerResult = lastDiff.unwrap(ValueChangesCheckerResult.class);
+
+                if (!valueChangesCheckerResult.differenceMap().containsKey(field) && !valueChangesCheckerResult.differenceMap().containsKey(fieldPath)) {
+                    return null;
+                }
+
+                if (valueChangesCheckerResult.differenceMap().containsKey(fieldPath)) {
+                    lastDiff = valueChangesCheckerResult.differenceMap().get(fieldPath);
+                    continue;
+                }
+
+                lastDiff = valueChangesCheckerResult.differenceMap().get(field);
+                lastDiffClass = lastDiff.getClass();
+                currentFieldIndex++;
+
+                if (currentFieldIndex >= fields.length) {
+                    return lastDiff;
+                }
+
+                field = fields[currentFieldIndex];
+            }
+
+            if (DifferenceRef.class.isAssignableFrom(lastDiffClass)) {
+                DifferenceRef differenceRef = lastDiff.unwrap(DifferenceRef.class);
+
+                if (!Objects.equals(differenceRef.onField(), field)) {
+                    return null;
+                }
+
+                lastDiff = differenceRef.toDifference();
+                currentFieldIndex++;
+
+                if (currentFieldIndex >= fields.length) {
+                    return lastDiff;
+                }
+                continue;
+            }
+
+            endIsReached = true;
+        } while (!endIsReached);
+
+        return null;
     }
 
     private Difference getDifference(Difference difference) {
