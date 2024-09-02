@@ -128,6 +128,7 @@ public class DefaultValueChangesChecker<T> implements ValueChangesChecker<T> {
         Class<?> fieldRootClass = attributeToCheck.attribute().clazz();
         Class<?> fieldClass = attributeToCheck.attribute().getLast().clazz();
         Class<?> fieldSourceClass = attributeToCheck.attribute().getLast().declaringClass();
+        boolean isArray = attributeToCheck.attribute().getLast().field().getType().isArray();
 
         if (newAttrVal == null || oldAttrVal == null) {
             diffMap.put(attributeToCheck.attribute().path(), differenceToReferenceChainByPath(attributeToCheck.attribute().path(), new ValueDifference<>(attributeToCheck.attribute().path(), fieldRootClass, fieldSourceClass, (Class<X>) fieldClass, (X) oldAttrVal, (X) newAttrVal)));
@@ -139,11 +140,20 @@ public class DefaultValueChangesChecker<T> implements ValueChangesChecker<T> {
         if (changesChecker != null) {
             if (CollectionChangesChecker.class.isAssignableFrom(changesChecker.getClass())) {
                 if (!Collection.class.isAssignableFrom(newAttrVal.getClass()) || !Collection.class.isAssignableFrom(oldAttrVal.getClass())) {
-                    throw new IllegalArgumentException("One of objects is not a Collection");
+                    if (!isArray) {
+                        throw new IllegalArgumentException("One of objects is not a Collection");
+                    }
                 }
 
                 CollectionChangesChecker<X> collectionChangesChecker = (CollectionChangesChecker<X>) changesChecker;
-                CollectionChangesCheckerResult<X> collectionChangesCheckerResult = collectionChangesChecker.getResult((Collection<X>) oldAttrVal, (Collection<X>) newAttrVal);
+
+                CollectionChangesCheckerResult<X> collectionChangesCheckerResult = null;
+                if (!isArray) {
+                    collectionChangesCheckerResult = collectionChangesChecker.getResult((Collection<X>) oldAttrVal, (Collection<X>) newAttrVal);
+                } else {
+                    collectionChangesCheckerResult = collectionChangesChecker.getResult((X[]) oldAttrVal, (X[]) newAttrVal);
+                }
+
                 diffMap.put(attributeToCheck.attribute().path(), collectionChangesCheckerResult);
                 return;
             }

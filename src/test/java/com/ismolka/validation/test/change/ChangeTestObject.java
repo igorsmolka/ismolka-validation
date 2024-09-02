@@ -1,5 +1,6 @@
 package com.ismolka.validation.test.change;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -14,14 +15,9 @@ public class ChangeTestObject {
 
     private Map<String, ChangeTestObjectMap> map;
 
-    public ChangeTestObject() {
-    }
+    private ChangeTestObjectCollection[] array;
 
-    public ChangeTestObject(String simpleField, ChangeTestInnerObject innerObject, List<ChangeTestObjectCollection> collection, Map<String, ChangeTestObjectMap> map) {
-        this.simpleField = simpleField;
-        this.innerObject = innerObject;
-        this.collection = collection;
-        this.map = map;
+    public ChangeTestObject() {
     }
 
     public String getSimpleField() {
@@ -56,17 +52,27 @@ public class ChangeTestObject {
         this.map = map;
     }
 
+    public ChangeTestObjectCollection[] getArray() {
+        return array;
+    }
+
+    public void setArray(ChangeTestObjectCollection[] array) {
+        this.array = array;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ChangeTestObject that = (ChangeTestObject) o;
-        return Objects.equals(simpleField, that.simpleField) && Objects.equals(innerObject, that.innerObject) && Objects.equals(collection, that.collection) && Objects.equals(map, that.map);
+        return Objects.equals(simpleField, that.simpleField) && Objects.equals(innerObject, that.innerObject) && Objects.equals(collection, that.collection) && Objects.equals(map, that.map) && Arrays.equals(array, that.array);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(simpleField, innerObject, collection, map);
+        int result = Objects.hash(simpleField, innerObject, collection, map);
+        result = 31 * result + Arrays.hashCode(array);
+        return result;
     }
 
     @Override
@@ -76,6 +82,7 @@ public class ChangeTestObject {
                 ", innerObject=" + innerObject +
                 ", collection=" + collection +
                 ", map=" + map +
+                ", array=" + Arrays.toString(array) +
                 '}';
     }
 }

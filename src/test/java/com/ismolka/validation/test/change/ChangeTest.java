@@ -127,6 +127,38 @@ public class ChangeTest {
     }
 
     @Test
+    public void test_array() {
+        String key = "ID_IN_COLLECTION";
+
+        ChangeTestObject oldTestObj = new ChangeTestObject();
+        ChangeTestObject newTestObj = new ChangeTestObject();
+
+        ChangeTestObjectCollection oldCollectionObj = new ChangeTestObjectCollection(key, OLD_VAL_STR);
+        ChangeTestObjectCollection newCollectionObj = new ChangeTestObjectCollection(key, NEW_VAL_STR);
+
+        oldTestObj.setArray(new ChangeTestObjectCollection[] { oldCollectionObj });
+        newTestObj.setArray(new ChangeTestObjectCollection[] { newCollectionObj });
+
+        CheckerResult result = DefaultValueChangesCheckerBuilder.builder(ChangeTestObject.class)
+                .addAttributeToCheck(
+                        ValueCheckDescriptorBuilder.builder(ChangeTestObject.class, ChangeTestObjectCollection.class)
+                                .attribute("array")
+                                .changesChecker(
+                                        DefaultCollectionChangesCheckerBuilder.builder(ChangeTestObjectCollection.class)
+                                                .addGlobalEqualsField("valueFromCollection")
+                                                .addFieldForMatching("key")
+                                                .build()
+                                ).build()
+
+                ).build().getResult(oldTestObj, newTestObj);
+
+        CollectionElementDifference<ChangeTestObjectCollection> difference = result.navigator().getDifferenceForCollection("array", ChangeTestObjectCollection.class).stream().findFirst().orElseThrow(() -> new RuntimeException("Result for collection is not present"));
+
+        Assertions.assertEquals(difference.elementFromOldCollection().getValueFromCollection(), oldCollectionObj.getValueFromCollection());
+        Assertions.assertEquals(difference.elementFromNewCollection().getValueFromCollection(), newCollectionObj.getValueFromCollection());
+    }
+
+    @Test
     public void test_map() {
         String key = "ID_IN_MAP";
 

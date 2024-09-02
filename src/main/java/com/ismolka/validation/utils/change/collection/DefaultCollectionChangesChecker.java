@@ -217,6 +217,14 @@ public class DefaultCollectionChangesChecker<T> extends DefaultValueChangesCheck
         return new CollectionChangesCheckerResult<>(collectionGenericClass, collectionDifference, collectionDifference.isEmpty());
     }
 
+    @Override
+    public CollectionChangesCheckerResult<T> getResult(T[] oldArray, T[] newArray) {
+        List<T> oldCollection = List.of(oldArray);
+        List<T> newCollection = List.of(newArray);
+
+        return getResult(oldCollection, newCollection);
+    }
+
     private CollectionChangesCheckerResult<T> returnResultWhenOneIsNull(Collection<T> oldCollection, Collection<T> newCollection) {
         Set<CollectionElementDifference<T>> collectionDifference = new OrderedHashSet<>();
 

@@ -19,7 +19,16 @@ public interface CollectionChangesChecker<T> extends ChangesChecker<T> {
      *
      * @param oldCollection - old collection
      * @param newCollection - new collection
-     * @return this
+     * @return {@link CollectionChangesCheckerResult}
      */
     CollectionChangesCheckerResult<T> getResult(Collection<T> oldCollection, Collection<T> newCollection);
+
+    /**
+     * Find difference between two arrays
+     *
+     * @param oldArray - old array
+     * @param newArray - new array
+     * @return {@link CollectionChangesCheckerResult}
+     */
+    CollectionChangesCheckerResult<T> getResult(T[] oldArray, T[] newArray);
 }
