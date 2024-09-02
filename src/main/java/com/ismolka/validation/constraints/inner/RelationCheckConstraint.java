@@ -19,7 +19,7 @@ import java.lang.annotation.Target;
 public @interface RelationCheckConstraint {
 
     /**
-     * @return field in the model, which represents information about relation (by {@link jakarta.persistence.JoinColumn}, {@link jakarta.persistence.JoinColumns}, {@link jakarta.persistence.JoinTable}).
+     * @return field in the model, which represents information about relation (by {@link jakarta.persistence.JoinColumn}, {@link jakarta.persistence.JoinColumns}).
      */
     String relationField() default "";
 

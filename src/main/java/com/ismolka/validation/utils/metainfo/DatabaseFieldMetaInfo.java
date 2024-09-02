@@ -1,7 +1,5 @@
 package com.ismolka.validation.utils.metainfo;
 
-import org.springframework.util.ReflectionUtils;
-
 import java.util.Objects;
 
 public record DatabaseFieldMetaInfo(
@@ -9,7 +7,9 @@ public record DatabaseFieldMetaInfo(
         boolean embeddedId,
         boolean embeddable,
         boolean simpleId,
-        boolean join
+        boolean join,
+
+        boolean joinTable
 ) implements ClassFieldMetaInfo {
 
     @Override

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+
+    <changeSet id="2024-09-02_14:18:00" author="Ihar Smolka">
+        <createTable tableName="test_unique">
+            <column name="id" type="INT" autoIncrement="true"/>
+            <column name="unique_field" type="VARCHAR"/>
+        </createTable>
+
+        <insert tableName="test_unique">
+            <column name="id">1</column>
+            <column name="unique_field">unique</column>
+        </insert>
+    </changeSet>
+
+    <changeSet id="2024-09-02_14:19:00" author="Ihar Smolka">
+        <createTable tableName="test_limit">
+            <column name="id" type="INT" autoIncrement="true"/>
+            <column name="limited_field" type="VARCHAR"/>
+        </createTable>
+
+        <insert tableName="test_limit">
+            <column name="id">1</column>
+            <column name="limited_field">only_two_values</column>
+        </insert>
+
+        <insert tableName="test_limit">
+            <column name="id">2</column>
+            <column name="limited_field">only_two_values</column>
+        </insert>
+    </changeSet>
+
+    <changeSet id="2024-09-02_14:20:00" author="Ihar Smolka">
+        <createTable tableName="test_relation">
+            <column name="id" type="INT" autoIncrement="true"/>
+            <column name="first_relation_id" type="INT" autoIncrement="true"/>
+            <column name="second_relation_id" type="INT" autoIncrement="true"/>
+        </createTable>
+
+        <createTable tableName="first_relation">
+            <column name="id" type="INT" autoIncrement="true"/>
+            <column name="value" type="VARCHAR"/>
+        </createTable>
+
+        <createTable tableName="second_relation">
+            <column name="id" type="INT" autoIncrement="true"/>
+            <column name="value" type="VARCHAR"/>
+        </createTable>
+
+        <insert tableName="first_relation">
+            <column name="id">1</column>
+            <column name="value">test1</column>
+        </insert>
+
+        <insert tableName="second_relation">
+            <column name="id">1</column>
+            <column name="value">test2</column>
+        </insert>
+    </changeSet>
+
+    <changeSet id="2024-09-02_14:21:00" author="Ihar Smolka">
+        <createTable tableName="test_unmodifiable">
+            <column name="id" type="INT" autoIncrement="true"/>
+            <column name="unmodifiable" type="VARCHAR"/>
+        </createTable>
+
+        <createTable tableName="test_unmodifiable_foreign">
+            <column name="id" type="INT" autoIncrement="true"/>
+            <column name="test_id" type="INT"/>
+            <column name="unmodifiable" type="VARCHAR"/>
+        </createTable>
+
+        <insert tableName="test_unmodifiable">
+            <column name="id">1</column>
+            <column name="unmodifiable">unmodifiable</column>
+        </insert>
+
+        <insert tableName="test_unmodifiable_foreign">
+            <column name="id">1</column>
+            <column name="test_id">1</column>
+            <column name="unmodifiable">unmodifiable</column>
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>

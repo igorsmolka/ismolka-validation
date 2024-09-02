@@ -80,7 +80,9 @@ public class ValidationChainValidator implements ConstraintValidator<ValidationC
             boolean result = validationChainElement.isValid(value, context);
 
             if (!result) {
-                if (!ignoreMainMessage) {
+                if (ignoreMainMessage) {
+                    constraintValidatorContext.disableDefaultConstraintViolation();
+                } else {
                     constraintValidatorContext.addMessageParameter(VALIDATION_CHAIN_CLASS_PARAM_NAME, validationChainElement.getClass().getName())
                             .addMessageParameter(VALIDATION_CHAIN_OBJECT_CLASS_PARAM_NAME, value.getClass().getName())
                             .addMessageParameter(VALIDATION_CHAIN_OBJECT_PARAM_NAME, value);

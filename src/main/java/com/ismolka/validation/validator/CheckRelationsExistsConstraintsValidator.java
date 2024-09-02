@@ -3,6 +3,7 @@ package com.ismolka.validation.validator;
 import com.ismolka.validation.constraints.CheckRelationsExistsConstraints;
 import com.ismolka.validation.constraints.inner.RelationCheckConstraint;
 import com.ismolka.validation.constraints.inner.RelationCheckConstraintFieldMapping;
+import com.ismolka.validation.utils.metainfo.DatabaseFieldMetaInfo;
 import com.ismolka.validation.utils.metainfo.DatabaseFieldMetaInfoExtractorUtil;
 import com.ismolka.validation.utils.metainfo.DatabaseFieldPath;
 import com.ismolka.validation.utils.metainfo.FieldPath;
@@ -34,10 +35,13 @@ public class CheckRelationsExistsConstraintsValidator extends AbstractEntityMana
 
     private RelationCheckConstraint[] relationCheckConstraints;
 
+    private boolean ignoreMainMessage;
+
     @Override
     public void initialize(CheckRelationsExistsConstraints constraintAnnotation) {
         this.message = constraintAnnotation.message();
         this.relationCheckConstraints = constraintAnnotation.value();
+        this.ignoreMainMessage = !constraintAnnotation.addMessageToViolations();
     }
 
     @Override
@@ -69,7 +73,11 @@ public class CheckRelationsExistsConstraintsValidator extends AbstractEntityMana
 
         int index = 0;
 
-        constraintValidatorContext.buildConstraintViolationWithTemplate(message).addConstraintViolation();
+        if (ignoreMainMessage) {
+            constraintValidatorContext.disableDefaultConstraintViolation();
+        } else {
+            constraintValidatorContext.buildConstraintViolationWithTemplate(message).addConstraintViolation();
+        }
 
         for (CheckRelationMetaInfo checkRelationMetaInfo : checkRelationsMetaInfo.checkRelationMetaInfo) {
             Object existingInfo = existInfoArray[index];
@@ -131,7 +139,16 @@ public class CheckRelationsExistsConstraintsValidator extends AbstractEntityMana
                 relationFieldPath = DatabaseFieldMetaInfoExtractorUtil.extractDatabaseFieldPathMetaInfo(relationCheckConstraint.relationField(), clazz);
             }
 
-            Class<?> relationClass = relationCheckConstraint.relationClass() != Object.class ? relationCheckConstraint.relationClass() : relationFieldPath.findFirstJoin().field().clazz();
+            DatabaseFieldMetaInfo firstJoinMetaInfo = null;
+            if (relationFieldPath != null) {
+                firstJoinMetaInfo = relationFieldPath.findFirstJoin();
+
+                if (firstJoinMetaInfo.joinTable()) {
+                    throw new IllegalArgumentException("Join tables are not supported");
+                }
+            }
+
+            Class<?> relationClass = relationCheckConstraint.relationClass() != Object.class ? relationCheckConstraint.relationClass() : firstJoinMetaInfo.field().clazz();
 
             Map<DatabaseFieldPath, DatabaseFieldPath> fromFkToPkFieldMapping = new HashMap<>();
             if (relationCheckConstraint.relationMapping().length != 0) {

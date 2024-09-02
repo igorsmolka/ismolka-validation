@@ -30,4 +30,9 @@ public @interface CheckRelationsExistsConstraints {
      * @return constraints for relation existing check.
      */
     RelationCheckConstraint[] value();
+
+    /**
+     * @return flag to add a 'main' message to violations.
+     */
+    boolean addMessageToViolations() default false;
 }
