@@ -139,7 +139,7 @@ public class DefaultValueChangesChecker<T> implements ValueChangesChecker<T> {
         if (changesChecker != null) {
             if (CollectionChangesChecker.class.isAssignableFrom(changesChecker.getClass())) {
                 if (!Collection.class.isAssignableFrom(newAttrVal.getClass()) || !Collection.class.isAssignableFrom(oldAttrVal.getClass())) {
-                    throw new IllegalArgumentException("One of objects is not a collection");
+                    throw new IllegalArgumentException("One of objects is not a Collection");
                 }
 
                 CollectionChangesChecker<X> collectionChangesChecker = (CollectionChangesChecker<X>) changesChecker;
@@ -149,6 +149,9 @@ public class DefaultValueChangesChecker<T> implements ValueChangesChecker<T> {
             }
 
             if (MapChangesChecker.class.isAssignableFrom(changesChecker.getClass())) {
+                if (!Map.class.isAssignableFrom(newAttrVal.getClass()) || !Map.class.isAssignableFrom(oldAttrVal.getClass())) {
+                    throw new IllegalArgumentException("One of objects is not a Map");
+                }
                 MapChangesChecker<?, X> mapChangesChecker = (MapChangesChecker<?, X>) changesChecker;
                 MapChangesCheckerResult<?, X> mapChangesCheckerResult = mapChangesChecker.getResult((Map) oldAttrVal, (Map) newAttrVal);
                 diffMap.put(attributeToCheck.attribute().path(), mapChangesCheckerResult);
