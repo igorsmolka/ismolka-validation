@@ -97,6 +97,32 @@ public class ChangeTest {
     }
 
     @Test
+    public void test_innerObjectNull() {
+        ChangeTestObject oldTestObj = new ChangeTestObject();
+        ChangeTestObject newTestObj = new ChangeTestObject();
+
+        oldTestObj.setInnerObject(null);
+        newTestObj.setInnerObject(new ChangeTestInnerObject(NEW_VAL_STR));
+
+        CheckerResult result = DefaultValueChangesCheckerBuilder.builder(ChangeTestObject.class)
+                .addAttributeToCheck(
+                        ValueCheckDescriptorBuilder.builder(ChangeTestObject.class, ChangeTestInnerObject.class)
+                                .attribute("innerObject")
+                                .addEqualsField("valueFromObject")
+                                .build()
+                )
+                .build().getResult(oldTestObj, newTestObj);
+
+        ValueDifference<?> valueDifference = result.navigator().getDifference("innerObject").unwrap(ValueDifference.class);
+
+        ChangeTestInnerObject oldValueFromCheckResult = (ChangeTestInnerObject) valueDifference.oldValue();
+        ChangeTestInnerObject newValueFromCheckResult = (ChangeTestInnerObject) valueDifference.newValue();
+
+        Assertions.assertEquals(oldValueFromCheckResult, oldTestObj.getInnerObject());
+        Assertions.assertEquals(newValueFromCheckResult, newTestObj.getInnerObject());
+    }
+
+    @Test
     public void test_collection() {
         String key = "ID_IN_COLLECTION";
 
