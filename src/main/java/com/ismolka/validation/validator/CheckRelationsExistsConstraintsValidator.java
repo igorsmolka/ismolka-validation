@@ -190,6 +190,35 @@ public class CheckRelationsExistsConstraintsValidator extends AbstractEntityMana
                                                                      CriteriaBuilder cb,
                                                                      CriteriaQuery<Object[]> criteriaQuery,
                                                                      Object object) {
+
+        if (checkRelationMetaInfo.fromFkToPkFieldMapping.isEmpty()) {
+            Object source = checkRelationMetaInfo.relationField.getValueFromObject(object);
+
+            if (source == null) {
+                if (checkRelationMetaInfo.nullable) {
+                    Subquery<Boolean> subQuery = criteriaQuery.subquery(Boolean.class);
+                    subQuery.select(cb.literal(true));
+                    return subQuery;
+                } else {
+                    throw new IllegalArgumentException("Relation is null");
+                }
+            }
+        } else {
+            if (object == null) {
+                throw new IllegalArgumentException("Object is null");
+            }
+
+            if (mappingFieldsAreNull(object, checkRelationMetaInfo.fromFkToPkFieldMapping)) {
+                if (checkRelationMetaInfo.nullable) {
+                    Subquery<Boolean> subQuery = criteriaQuery.subquery(Boolean.class);
+                    subQuery.select(cb.literal(true));
+                    return subQuery;
+                } else {
+                    throw new IllegalArgumentException("Relation is null");
+                }
+            }
+        }
+
         Subquery<Boolean> subQuery = criteriaQuery.subquery(Boolean.class);
         Root<?> subRoot = subQuery.from(checkRelationMetaInfo.relationClass);
 
@@ -197,6 +226,8 @@ public class CheckRelationsExistsConstraintsValidator extends AbstractEntityMana
         Predicate predicateForCheckExistence = createPredicateByCheckRelationMetaInfo(checkRelationMetaInfo, subRoot, cb, object);
         if (predicateForCheckExistence != null) {
             subQuery.where(createPredicateByCheckRelationMetaInfo(checkRelationMetaInfo, subRoot, cb, object));
+        } else {
+            subQuery.where(cb.literal(true));
         }
 
         return subQuery;
@@ -205,30 +236,8 @@ public class CheckRelationsExistsConstraintsValidator extends AbstractEntityMana
     private Predicate createPredicateByCheckRelationMetaInfo(CheckRelationMetaInfo checkRelationMetaInfo, Root<?> root, CriteriaBuilder cb, Object object) {
         if (checkRelationMetaInfo.fromFkToPkFieldMapping.isEmpty()) {
             Object source = checkRelationMetaInfo.relationField.getValueFromObject(object);
-
-            if (source == null) {
-                if (checkRelationMetaInfo.nullable) {
-                    return null;
-                } else {
-                    throw new IllegalArgumentException("Relation is null");
-                }
-            }
-
             return toEqualsPredicate(checkRelationMetaInfo.relationClassIds, root, cb, source);
-
         } else {
-            if (object == null) {
-                throw new IllegalArgumentException("Object is null");
-            }
-
-            if (mappingFieldsAreNull(object, checkRelationMetaInfo.fromFkToPkFieldMapping)) {
-                if (checkRelationMetaInfo.nullable) {
-                    return null;
-                } else {
-                    throw new IllegalArgumentException("Relation is null");
-                }
-            }
-
             return toEqualsPredicate(checkRelationMetaInfo.fromFkToPkFieldMapping, root, cb, object);
         }
     }
