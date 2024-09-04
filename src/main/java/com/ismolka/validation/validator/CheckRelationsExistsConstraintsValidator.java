@@ -163,7 +163,7 @@ public class CheckRelationsExistsConstraintsValidator extends AbstractEntityMana
 
             Set<DatabaseFieldPath> relationClassIds = DatabaseFieldMetaInfoExtractorUtil.extractIdFieldPathsMetaInfo(relationClass);
 
-            checkRelationMetaInfo.add(new CheckRelationMetaInfo(relationFieldPath, fromFkToPkFieldMapping, relationClassIds, relationClass, relationCheckConstraint.message(), relationCheckConstraint.relationErrorMessageNaming()));
+            checkRelationMetaInfo.add(new CheckRelationMetaInfo(relationFieldPath, fromFkToPkFieldMapping, relationClassIds, relationClass, relationCheckConstraint.message(), relationCheckConstraint.relationErrorMessageNaming(), relationCheckConstraint.nullable()));
         }
 
         META_INFO.put(clazz, new CheckRelationsMetaInfo(checkRelationMetaInfo));
@@ -194,7 +194,10 @@ public class CheckRelationsExistsConstraintsValidator extends AbstractEntityMana
         Root<?> subRoot = subQuery.from(checkRelationMetaInfo.relationClass);
 
         subQuery.select(cb.literal(true));
-        subQuery.where(createPredicateByCheckRelationMetaInfo(checkRelationMetaInfo, subRoot, cb, object));
+        Predicate predicateForCheckExistence = createPredicateByCheckRelationMetaInfo(checkRelationMetaInfo, subRoot, cb, object);
+        if (predicateForCheckExistence != null) {
+            subQuery.where(createPredicateByCheckRelationMetaInfo(checkRelationMetaInfo, subRoot, cb, object));
+        }
 
         return subQuery;
     }
@@ -204,18 +207,40 @@ public class CheckRelationsExistsConstraintsValidator extends AbstractEntityMana
             Object source = checkRelationMetaInfo.relationField.getValueFromObject(object);
 
             if (source == null) {
-                throw new IllegalArgumentException("Relation is null");
+                if (checkRelationMetaInfo.nullable) {
+                    return null;
+                } else {
+                    throw new IllegalArgumentException("Relation is null");
+                }
             }
 
             return toEqualsPredicate(checkRelationMetaInfo.relationClassIds, root, cb, source);
 
         } else {
             if (object == null) {
-                throw new IllegalArgumentException("Relation is null");
+                throw new IllegalArgumentException("Object is null");
+            }
+
+            if (mappingFieldsAreNull(object, checkRelationMetaInfo.fromFkToPkFieldMapping)) {
+                if (checkRelationMetaInfo.nullable) {
+                    return null;
+                } else {
+                    throw new IllegalArgumentException("Relation is null");
+                }
             }
 
             return toEqualsPredicate(checkRelationMetaInfo.fromFkToPkFieldMapping, root, cb, object);
         }
+    }
+
+    private boolean mappingFieldsAreNull(Object object, Map<DatabaseFieldPath, DatabaseFieldPath> fromFkToPkFieldMapping) {
+        for (DatabaseFieldPath key : fromFkToPkFieldMapping.keySet()) {
+            if (key.getValueFromObject(object) != null) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private record CheckRelationsMetaInfo(Set<CheckRelationMetaInfo> checkRelationMetaInfo) {
@@ -240,7 +265,9 @@ public class CheckRelationsExistsConstraintsValidator extends AbstractEntityMana
                                          Set<DatabaseFieldPath> relationClassIds,
                                          Class<?> relationClass,
                                          String message,
-                                         String relationErrorMessageNaming) {
+                                         String relationErrorMessageNaming,
+
+                                         boolean nullable) {
 
         @Override
         public boolean equals(Object o) {

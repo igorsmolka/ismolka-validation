@@ -42,4 +42,9 @@ public @interface RelationCheckConstraint {
      * @return custom relation naming for error messages.
      */
     String relationErrorMessageNaming() default "";
+
+    /**
+     * @return is relation nullable
+     */
+    boolean nullable() default true;
 }

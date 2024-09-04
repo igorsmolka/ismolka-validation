@@ -26,6 +26,19 @@ public class RelationValidationTest {
     private Validator validator;
 
     @Test
+    public void test_relationsAreNull() {
+        TestRelation testRelation = new TestRelation();
+
+        testRelation.setFirstRelation(null);
+        testRelation.setSecondRelation(null);
+        testRelation.setSecondRelationId(null);
+
+        Set<ConstraintViolation<TestRelation>> constraintValidatorSet = validator.validate(testRelation);
+
+        Assertions.assertEquals(EXPECTED_CONSTRAINT_COUNT_ON_SUCCESS, constraintValidatorSet.size());
+    }
+
+    @Test
     public void test_onFail() {
         TestRelation testRelation = new TestRelation();
 
