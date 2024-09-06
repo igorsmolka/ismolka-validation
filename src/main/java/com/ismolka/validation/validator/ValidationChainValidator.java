@@ -6,7 +6,6 @@ import jakarta.validation.ConstraintValidatorContext;
 import org.antlr.v4.runtime.misc.OrderedHashSet;
 import org.hibernate.validator.constraintvalidation.HibernateConstraintValidatorContext;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
@@ -14,7 +13,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class ValidationChainValidator implements ConstraintValidator<ValidationChain, Object> {
+public class ValidationChainValidator implements ConstraintValidator<ValidationChain, Object>, ApplicationContextAware {
 
     private static final Map<Class<?>, Set<ValidationChainElement<?>>> META_INFO = new ConcurrentHashMap<>();
 
@@ -26,7 +25,6 @@ public class ValidationChainValidator implements ConstraintValidator<ValidationC
 
     private Class<? extends ValidationChainElement<?>>[] chainClasses;
 
-    @Autowired
     private ApplicationContext applicationContext;
 
     private boolean ignoreMainMessage;
@@ -51,6 +49,11 @@ public class ValidationChainValidator implements ConstraintValidator<ValidationC
         Set<ValidationChainElement<?>> chain = META_INFO.get(clazz);
 
         return passThroughTheChain(value, context, chain);
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext = applicationContext;
     }
 
     protected void extractAndCashMetaDataForClass(Class<?> clazz) {
