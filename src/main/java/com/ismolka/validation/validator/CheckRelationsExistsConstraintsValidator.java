@@ -55,6 +55,17 @@ public class CheckRelationsExistsConstraintsValidator extends AbstractEntityMana
 
         CheckRelationsMetaInfo checkRelationsMetaInfo = META_INFO.get(clazz);
 
+        boolean someNotNull = false;
+        for (CheckRelationMetaInfo checkRelationMetaInfoElement : checkRelationsMetaInfo.checkRelationMetaInfo) {
+            if (!relationFieldsIsNull(value, checkRelationMetaInfoElement)) {
+                someNotNull = true;
+            }
+        }
+
+        if (!someNotNull) {
+            return true;
+        }
+
         TypedQuery<Object[]> query = em.createQuery(createCriteriaQuery(checkRelationsMetaInfo, value, em));
         query.setMaxResults(LIMIT);
 
@@ -186,21 +197,15 @@ public class CheckRelationsExistsConstraintsValidator extends AbstractEntityMana
         return criteriaQuery;
     }
 
-    private Subquery<Boolean> createSubQueryForCheckRelationMetaInfo(CheckRelationMetaInfo checkRelationMetaInfo,
-                                                                     CriteriaBuilder cb,
-                                                                     CriteriaQuery<Object[]> criteriaQuery,
-                                                                     Object object) {
-
+    private boolean relationFieldsIsNull(Object object, CheckRelationMetaInfo checkRelationMetaInfo) {
         if (checkRelationMetaInfo.fromFkToPkFieldMapping.isEmpty()) {
             Object source = checkRelationMetaInfo.relationField.getValueFromObject(object);
 
             if (source == null) {
                 if (checkRelationMetaInfo.nullable) {
-                    Subquery<Boolean> subQuery = criteriaQuery.subquery(Boolean.class);
-                    subQuery.select(cb.literal(true));
-                    return subQuery;
+                    return true;
                 } else {
-                    throw new IllegalArgumentException("Relation is null");
+                    throw new IllegalArgumentException("Not nullable relation is null");
                 }
             }
         } else {
@@ -210,12 +215,34 @@ public class CheckRelationsExistsConstraintsValidator extends AbstractEntityMana
 
             if (mappingFieldsAreNull(object, checkRelationMetaInfo.fromFkToPkFieldMapping)) {
                 if (checkRelationMetaInfo.nullable) {
-                    Subquery<Boolean> subQuery = criteriaQuery.subquery(Boolean.class);
-                    subQuery.select(cb.literal(true));
-                    return subQuery;
+                    return true;
                 } else {
-                    throw new IllegalArgumentException("Relation is null");
+                    throw new IllegalArgumentException("Not nullable relation is null");
                 }
+            }
+        }
+
+        return false;
+    }
+
+    private Subquery<Boolean> createSubQueryForCheckRelationMetaInfo(CheckRelationMetaInfo checkRelationMetaInfo,
+                                                                     CriteriaBuilder cb,
+                                                                     CriteriaQuery<Object[]> criteriaQuery,
+                                                                     Object object) {
+
+        if (checkRelationMetaInfo.fromFkToPkFieldMapping.isEmpty()) {
+            Object source = checkRelationMetaInfo.relationField.getValueFromObject(object);
+
+            if (source == null) {
+                Subquery<Boolean> subQuery = criteriaQuery.subquery(Boolean.class);
+                subQuery.select(cb.literal(true));
+                return subQuery;
+            }
+        } else {
+            if (mappingFieldsAreNull(object, checkRelationMetaInfo.fromFkToPkFieldMapping)) {
+                Subquery<Boolean> subQuery = criteriaQuery.subquery(Boolean.class);
+                subQuery.select(cb.literal(true));
+                return subQuery;
             }
         }
 
