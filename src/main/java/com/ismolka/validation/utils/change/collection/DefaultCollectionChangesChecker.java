@@ -1,15 +1,21 @@
 package com.ismolka.validation.utils.change.collection;
 
-import com.ismolka.validation.utils.constant.CollectionOperation;
+import com.ismolka.validation.utils.change.value.DefaultValueChangesChecker;
 import com.ismolka.validation.utils.change.value.ValueChangesCheckerResult;
 import com.ismolka.validation.utils.change.value.ValueCheckDescriptor;
-import com.ismolka.validation.utils.change.value.DefaultValueChangesChecker;
+import com.ismolka.validation.utils.constant.CollectionOperation;
 import com.ismolka.validation.utils.metainfo.FieldPath;
 import org.antlr.v4.runtime.misc.OrderedHashSet;
 import org.springframework.util.CollectionUtils;
 
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.function.BiPredicate;
 
 public class DefaultCollectionChangesChecker<T> extends DefaultValueChangesChecker<T> implements CollectionChangesChecker<T> {
@@ -45,17 +51,17 @@ public class DefaultCollectionChangesChecker<T> extends DefaultValueChangesCheck
         if (!CollectionUtils.isEmpty(fieldsForMatching)) {
             Map<String, MatchingElement<T>> collectionByKeyMap = new HashMap<>();
 
-            Set<MatchingElement<T>> objectsWithNullFieldsMatchingInNewCollection = new OrderedHashSet<>();
-            Set<MatchingElement<T>> objectsWithNullFieldsMatchingInOldCollection = new OrderedHashSet<>();
+            List<MatchingElement<T>> objectsWithNullFieldsMatchingInNewCollection = new ArrayList<>();
+            List<MatchingElement<T>> objectsWithNullFieldsMatchingInOldCollection = new ArrayList<>();
 
             int newObjIndex = 0;
             for (T newObject : newCollection) {
                 if (fieldsForMatchingIsNullForObject(newObject)) {
                     objectsWithNullFieldsMatchingInNewCollection.add(new MatchingElement<>(newObject, false, newObjIndex));
-                    continue;
+                } else {
+                    collectionByKeyMap.put(getKeyString(newObject), new MatchingElement<>(newObject, false, newObjIndex));
                 }
 
-                collectionByKeyMap.put(getKeyString(newObject), new MatchingElement<>(newObject, false, newObjIndex));
                 newObjIndex++;
             }
 
